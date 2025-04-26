@@ -1,0 +1,6 @@
+This product includes software developed by Awisk (https://awisk.com).
+
+Licensed under the Apache License, Version 2.0.
+
+Modifications:
+- If you modify this code, include a description of your changes here.
