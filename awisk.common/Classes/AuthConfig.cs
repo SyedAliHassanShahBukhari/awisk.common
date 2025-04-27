@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace awisk.common.Classes
 {
-    public class AuthConfig
+    public partial class AuthConfig
     {
         public string AuthScheme { get; set; } = string.Empty;
         public string AuthCookie { get; set; } = string.Empty;

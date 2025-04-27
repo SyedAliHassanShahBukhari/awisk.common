@@ -1,14 +1,9 @@
 ﻿using awisk.common.DTOs.Responses;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace awisk.common.Helpers
 {
-    public static class EnumHelper
+    public static partial class EnumHelper
     {
         public static IEnumerable<ListItemResponseDto<T>> GetSelectListFromEnum<T>() where T : Enum
         {

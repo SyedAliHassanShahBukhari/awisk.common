@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace awisk.common.ServiceCollection
 {
-    public static class AddAuthenticationWrapper
+    public static partial class AddAuthenticationWrapper
     {
         public static void AddDefaultAuthentication(this IServiceCollection services, JwtSettings settings)
         {

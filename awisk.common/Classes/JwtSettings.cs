@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace awisk.common.Classes
 {
-    public class JwtSettings
+    public partial class JwtSettings
     {
         public string Issuer { get; set; } = string.Empty;
         public string SecretKey { get; set; } = string.Empty;

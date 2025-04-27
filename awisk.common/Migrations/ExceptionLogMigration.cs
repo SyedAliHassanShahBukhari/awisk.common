@@ -1,8 +1,9 @@
-﻿using FluentMigrator;
+﻿using awisk.common.Extensions;
+using FluentMigrator;
 
-namespace awisk.common.Extensions
+namespace awisk.common.Migrations
 {
-    public class ExceptionLogMigration : Migration
+    public partial class ExceptionLogMigration : Migration
     {
         private readonly string tableName = "ExceptionLogs";
         public override void Up()

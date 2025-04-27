@@ -2,15 +2,10 @@
 using FluentMigrator.Builders.Alter.Table;
 using FluentMigrator.Builders.Create.Column;
 using FluentMigrator.Builders.Create.Table;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace awisk.common.Extensions
 {
-    public static class DataTypes
+    public static partial class DataTypes
     {
         public static ICreateColumnOptionSyntax AsVarCharMax(this ICreateColumnAsTypeOrInSchemaSyntax createTableColumnAsTypeSyntax)
         {

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace awisk.common.Extensions
 {
-    public static class RandomCodeGenerator
+    public static partial class RandomCodeGenerator
     {
         public static string GeneratePassword(int length = 32)
         {

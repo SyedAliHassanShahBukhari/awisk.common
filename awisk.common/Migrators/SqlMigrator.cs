@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace awisk.common.Migrators
 {
-    public class SqlMigrator
+    public partial class SqlMigrator
     {
         private static string MIGRATIONS_NAMESPACE = "";
         private static string APP_NAME = "";

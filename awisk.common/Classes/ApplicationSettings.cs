@@ -6,5 +6,6 @@
         public ApiSettings ApiSettings { get; set; } = new();
         public JwtSettings JwtSettings { get; set; } = new();
         public AuthConfig Auth { get; set; } = new();
+        public PasswordSettings PasswordSettings { get; set; } = new();
     }
 }

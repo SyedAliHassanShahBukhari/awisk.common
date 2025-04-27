@@ -3,7 +3,7 @@ using FluentMigrator;
 
 namespace awisk.common.Extensions
 {
-    public static class MigrationExtensions
+    public static partial class MigrationExtensions
     {
         public static ICreateTableWithColumnSyntax WithDefaultColumns(this ICreateTableWithColumnSyntax table)
         {
