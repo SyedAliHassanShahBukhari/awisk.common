@@ -27,7 +27,7 @@ namespace awisk.common.Services
             List<Claim> claims = [
                 new Claim(JwtRegisteredClaimNames.Email, UniversalOpertaions.IfNullEmptyString(user?.Email)),
                 new Claim(ClaimTypes.Role, UniversalOpertaions.IfNullEmptyString(string.Join(",", roles))),
-                new Claim(JwtRegisteredClaimNames.Jti, UniversalOpertaions.NewGuidStr),
+                new Claim(JwtRegisteredClaimNames.Jti, UniversalOpertaions.NewGuidStr()),
                 new Claim(ClaimTypes.NameIdentifier, UniversalOpertaions.IfNullEmptyString(user?.Id)),
                 new Claim(ClaimTypes.Name, UniversalOpertaions.IfNullEmptyString(user?.FullName))
             ];
@@ -57,7 +57,7 @@ namespace awisk.common.Services
             [
                 new Claim(JwtRegisteredClaimNames.Email, response.Email),
                 new Claim(ClaimTypes.Role, response.Roles),
-                new Claim(JwtRegisteredClaimNames.Jti, UniversalOpertaions.NewGuidStr),
+                new Claim(JwtRegisteredClaimNames.Jti, UniversalOpertaions.NewGuidStr()),
                 new Claim(ClaimTypes.NameIdentifier, response.Id),
                 new Claim(ClaimTypes.Name, response.FullName),
                 new Claim("token", response.Token)
