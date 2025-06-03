@@ -8,7 +8,7 @@ namespace awisk.common.Interfaces
 {
     public interface IApiService
     {
-        public Task<T?> GetAsync<T>(Uri url, string? bearerToken = null);
-        public Task<TResponse?> PostAsync<TRequest, TResponse>(Uri url, TRequest data, string? bearerToken = null);
+        public Task<T?> GetAsync<T>(Uri url, string? bearerToken = null, Dictionary<string, string>? headers = null);
+        public Task<TResponse?> PostAsync<TRequest, TResponse>(Uri url, TRequest data, string? bearerToken = null, Dictionary<string, string>? headers = null);
     }
 }

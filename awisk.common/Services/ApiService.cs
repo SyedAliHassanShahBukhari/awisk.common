@@ -10,13 +10,17 @@ namespace awisk.common.Services
         private readonly HttpClient _httpClient = httpClient;
         private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public async Task<T?> GetAsync<T>(Uri url, string? bearerToken = null)
+        public async Task<T?> GetAsync<T>(Uri url, string? bearerToken = null, Dictionary<string, string>? headers = null)
         {
             if (!string.IsNullOrEmpty(bearerToken))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             }
-
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                    _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+            }
             var response = await _httpClient.GetAsync(url).ConfigureAwait(true);
             response.EnsureSuccessStatusCode();
 
@@ -24,11 +28,17 @@ namespace awisk.common.Services
             return JsonSerializer.Deserialize<T>(json, _jsonOptions);
         }
 
-        public async Task<TResponse?> PostAsync<TRequest, TResponse>(Uri url, TRequest data, string? bearerToken = null)
+        public async Task<TResponse?> PostAsync<TRequest, TResponse>(Uri url, TRequest data, string? bearerToken = null, Dictionary<string, string>? headers = null)
         {
             if (!string.IsNullOrEmpty(bearerToken))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            }
+
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                    _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
             }
 
             using var content = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");

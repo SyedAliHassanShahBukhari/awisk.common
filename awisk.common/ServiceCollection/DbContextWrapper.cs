@@ -2,14 +2,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace awisk.common.ServiceCollection
 {
     public static partial class DbContextWrapper
     {
-        public static void AddSqlDbContextDefault(this IServiceCollection services, string connectionString)
+        public static void AddSqlDbContextDefault<T>(this IServiceCollection services, string connectionString) where T : DbContext
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<T>(options =>
                 options.UseSqlServer(connectionString));
             services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -25,13 +26,15 @@ namespace awisk.common.ServiceCollection
             .AddDefaultTokenProviders();
         }
 
-        public static void AddSqlDbContextDefault(this IServiceCollection services, string connectionString, string migrationAssembly)
+        public static void AddSqlDbContextDefault<TContext, TUser>(this IServiceCollection services, string connectionString, string migrationAssembly)
+            where TContext : IdentityDbContext<TUser>
+            where TUser : IdentityUser
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<TContext>(options =>
                 options.UseSqlServer(connectionString, b => b.MigrationsAssembly(migrationAssembly)));
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            services.AddIdentity<TUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;
@@ -39,7 +42,7 @@ namespace awisk.common.ServiceCollection
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredLength = 6;
             })
-            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddEntityFrameworkStores<TContext>()
             .AddDefaultTokenProviders();
         }
 
