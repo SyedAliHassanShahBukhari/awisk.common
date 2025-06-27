@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +11,6 @@ namespace awisk.common.Interfaces
     {
         public Task<T?> GetAsync<T>(Uri url, string? bearerToken = null, Dictionary<string, string>? headers = null);
         public Task<TResponse?> PostAsync<TRequest, TResponse>(Uri url, TRequest data, string? bearerToken = null, Dictionary<string, string>? headers = null);
+        public Task<TResponse?> PostWithFileAsync<TRequest, TResponse>(Uri url, TRequest data, IFormFile file, string fileObjectName, string? bearerToken = null, Dictionary<string, string>? headers = null);
     }
 }
