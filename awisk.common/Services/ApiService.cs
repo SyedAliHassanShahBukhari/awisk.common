@@ -82,7 +82,9 @@ namespace awisk.common.Services
             await using var ms = new MemoryStream();
             await file.CopyToAsync(ms).ConfigureAwait(false);
             ms.Position = 0;
-            form.Add(new StreamContent(ms), fileObjectName, file.FileName);
+            var fileContent = new StreamContent(ms);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType); // This is key
+            form.Add(fileContent, fileObjectName, file.FileName);
 
             var response = await _httpClient.PostAsync(url, form).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
