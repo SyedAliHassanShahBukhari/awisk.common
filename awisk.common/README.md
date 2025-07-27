@@ -10,4 +10,4 @@
 Install via **NuGet Package Manager**:
 
 ```bash
-dotnet add package awisk.Common --version 2.0.8
+dotnet add package awisk.Common --version 2.0.9
