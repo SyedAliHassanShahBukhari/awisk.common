@@ -5,11 +5,11 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>2.0.10</Version>
+		<Version>2.0.11</Version>
 		<Authors>Syed Ali Hassan</Authors>
 		<Company>awisk</Company>
 		<PackageId>awisk.Common</PackageId>
-		<Description>Common utilities for awisk projects</Description>
+		<Description>Common utilities for projects</Description>
 		<PackageTags>utilities;helpers;common;awisk</PackageTags>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

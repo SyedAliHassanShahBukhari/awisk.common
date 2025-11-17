@@ -1,6 +1,7 @@
 ﻿using awisk.common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.Json;
 
@@ -11,17 +12,13 @@ namespace awisk.common.Services
         private readonly HttpClient _httpClient = httpClient;
         private readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public async Task<T?> GetAsync<T>(Uri url, string? bearerToken = null, Dictionary<string, string>? headers = null)
+        public async Task<T?> GetAsync<T>(Uri url, string? bearerToken = null)
         {
             if (!string.IsNullOrEmpty(bearerToken))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             }
-            if (headers != null)
-            {
-                foreach (var header in headers)
-                    _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
-            }
+
             var response = await _httpClient.GetAsync(url).ConfigureAwait(true);
             response.EnsureSuccessStatusCode();
 
@@ -31,6 +28,11 @@ namespace awisk.common.Services
 
         public async Task<TResponse?> PostAsync<TRequest, TResponse>(Uri url, TRequest data, string? bearerToken = null, Dictionary<string, string>? headers = null)
         {
+            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json")
+            };
+
             if (!string.IsNullOrEmpty(bearerToken))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
@@ -39,24 +41,69 @@ namespace awisk.common.Services
             if (headers != null)
             {
                 foreach (var header in headers)
-                    _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }
 
             using var content = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(url, content).ConfigureAwait(true);
+            var response = await _httpClient.SendAsync(request).ConfigureAwait(true);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(true);
             return JsonSerializer.Deserialize<TResponse>(json, _jsonOptions);
         }
 
+
+        public async Task<TResponse?> PutAsync<TRequest, TResponse>(
+        Uri url, TRequest data, string? bearerToken = null, Dictionary<string, string>? headers = null)
+        where TResponse : class, new()
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Put, url)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json")
+            };
+
+            if (!string.IsNullOrEmpty(bearerToken))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                return new();
+
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return JsonSerializer.Deserialize<TResponse>(json, _jsonOptions);
+        }
+
+        public async Task<bool> DeleteAsync(
+        Uri url, string? bearerToken = null, Dictionary<string, string>? headers = null)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            if (!string.IsNullOrEmpty(bearerToken))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
+            if (headers != null)
+            {
+                foreach (var header in headers)
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
+        }
+
         public async Task<TResponse?> PostWithFileAsync<TRequest, TResponse>(
-            Uri url,
-            TRequest data,
-            IFormFile file,
-            string fileObjectName,
-            string? bearerToken = null,
-            Dictionary<string, string>? headers = null)
+                    Uri url,
+                    TRequest data,
+                    IFormFile file,
+                    string fileObjectName,
+                    string? bearerToken = null,
+                    Dictionary<string, string>? headers = null)
         {
             if (!string.IsNullOrEmpty(bearerToken))
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
