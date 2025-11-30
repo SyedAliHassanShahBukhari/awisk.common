@@ -58,46 +58,7 @@ namespace awisk.common.ServiceCollection
                         Array.Empty<string>()
                     }
                 });
-
-                // Include XML Comments (if generated)
-                var xmlFilename = $"{Assembly.GetEntryAssembly()?.GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
-                if (File.Exists(xmlPath))
-                    option.IncludeXmlComments(xmlPath);
-
-                // Support Enum Descriptions
-                option.SchemaFilter<EnumDescriptionSchemaFilter>();
-
-                // Optional: group controllers by namespace (helpful in large APIs)
-                option.TagActionsBy(api =>
-                {
-                    var controllerName = api.GroupName ?? api.ActionDescriptor?.RouteValues["controller"];
-                    return [controllerName ?? "General"];
-                });
-
-                option.DocInclusionPredicate((docName, apiDesc) => true);
             });
-        }
-    }
-
-    // Helper: show enum [Description] attributes nicely in Swagger
-    internal class EnumDescriptionSchemaFilter : Swashbuckle.AspNetCore.SwaggerGen.ISchemaFilter
-    {
-        public void Apply(OpenApiSchema schema, Swashbuckle.AspNetCore.SwaggerGen.SchemaFilterContext context)
-        {
-            if (context.Type.IsEnum)
-            {
-                var names = Enum.GetNames(context.Type);
-                var values = Enum.GetValues(context.Type).Cast<object>().ToArray();
-                var descs = values.Select(v =>
-                {
-                    var fi = context.Type.GetField(v.ToString()!);
-                    var da = fi?.GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false)
-                                .FirstOrDefault() as System.ComponentModel.DescriptionAttribute;
-                    return $"{Convert.ToInt32(v)} = {da?.Description ?? v.ToString()}";
-                });
-                schema.Description += "<br><b>Enum values:</b><br>" + string.Join("<br>", descs);
-            }
         }
     }
 }

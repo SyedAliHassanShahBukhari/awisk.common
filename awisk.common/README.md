@@ -104,13 +104,13 @@
 Install via NuGet Package Manager:
 
 ```bash
-dotnet add package awisk.Common --version 2.0.12
+dotnet add package awisk.Common --version 2.0.13
 ```
 
 Or via Package Manager Console:
 
 ```powershell
-Install-Package awisk.Common -Version 2.0.12
+Install-Package awisk.Common -Version 2.0.13
 ```
 
 ---
@@ -476,7 +476,7 @@ var paging = RepositoryBasePostgreSql.GetPagingStatement(page: 2, pageSize: 20);
 
 ---
 
-## Key Improvements in v2.0.12
+## Key Improvements in v2.0.13
 
 - ✅ Generic DbContext registration methods for all database providers
 - ✅ Migration assembly support in all DbContext methods
@@ -502,6 +502,6 @@ For issues, questions, or contributions, please refer to the project repository 
 
 ---
 
-**Version:** 2.0.12  
+**Version:** 2.0.13  
 **Author:** Syed Ali Hassan  
 **Company:** awisk
