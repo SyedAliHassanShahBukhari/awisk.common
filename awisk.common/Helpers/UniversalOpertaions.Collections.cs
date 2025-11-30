@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace awisk.common.Helpers
+﻿namespace awisk.common.Helpers
 {
     public static partial class UniversalOpertaions
     {

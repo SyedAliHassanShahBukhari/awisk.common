@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace awisk.common.Helpers
+﻿namespace awisk.common.Helpers
 {
     public static partial class UniversalOpertaions
     {
@@ -10,12 +7,20 @@ namespace awisk.common.Helpers
 
         public static void CopyProperties<TSrc, TDest>(this TSrc source, TDest dest)
         {
-            if (source == null || dest == null) return;
+            if (source == null || dest == null)
+            {
+                return;
+            }
+
             var srcProps = typeof(TSrc).GetProperties();
             var destProps = typeof(TDest).GetProperties().ToDictionary(p => p.Name);
             foreach (var sp in srcProps)
+            {
                 if (destProps.TryGetValue(sp.Name, out var dp) && dp.CanWrite)
+                {
                     dp.SetValue(dest, sp.GetValue(source));
+                }
+            }
         }
     }
 }

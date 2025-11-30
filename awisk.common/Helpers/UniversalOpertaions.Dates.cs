@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace awisk.common.Helpers
+﻿namespace awisk.common.Helpers
 {
     public static partial class UniversalOpertaions
     {
@@ -32,7 +30,10 @@ namespace awisk.common.Helpers
 
         public static System.Collections.Generic.IEnumerable<DateTime> EachDay(this DateTime start, DateTime end)
         {
-            for (var d = start.Date; d <= end.Date; d = d.AddDays(1)) yield return d;
+            for (var d = start.Date; d <= end.Date; d = d.AddDays(1))
+            {
+                yield return d;
+            }
         }
     }
 }

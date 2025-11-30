@@ -1,11 +1,15 @@
-﻿using Dapper.Contrib.Extensions;
+using Dapper.Contrib.Extensions;
 
 namespace awisk.common.Data.Db
 {
-    public abstract class BaseLongEntity
+    /// <summary>
+    /// Base entity class with Guid as the primary key type.
+    /// Use this for entities that require globally unique identifiers.
+    /// </summary>
+    public abstract class BaseGuidEntity
     {
-        [Key]
-        public long Id { get; set; }
+        [ExplicitKey]
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public string UpdatedBy { get; set; } = string.Empty;

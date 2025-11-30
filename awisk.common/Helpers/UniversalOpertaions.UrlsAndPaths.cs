@@ -1,13 +1,15 @@
-﻿using System.Linq;
-
-namespace awisk.common.Helpers
+﻿namespace awisk.common.Helpers
 {
     public static partial class UniversalOpertaions
     {
         public static string CombineUrl(string baseUrl, params string[] parts)
         {
             var url = (baseUrl ?? string.Empty).TrimEnd('/');
-            foreach (var p in parts) url += "/" + (p ?? string.Empty).Trim('/');
+            foreach (var p in parts)
+            {
+                url += "/" + (p ?? string.Empty).Trim('/');
+            }
+
             return url;
         }
 
@@ -19,9 +21,16 @@ namespace awisk.common.Helpers
 
         public static bool EnsureDirectory(string path)
         {
-            if (string.IsNullOrWhiteSpace(path)) return false;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return false;
+            }
+
             if (!System.IO.Directory.Exists(path))
+            {
                 System.IO.Directory.CreateDirectory(path);
+            }
+
             return true;
         }
     }

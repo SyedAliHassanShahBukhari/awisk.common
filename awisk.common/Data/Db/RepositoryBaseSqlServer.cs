@@ -16,7 +16,10 @@ namespace awisk.common.Data.Db
             return connection.GetAll<T>();
         }
 
-        public T GetById<T, ID>(ID id) where T : class
+        /// <summary>
+        /// Gets an entity by its ID. Returns null if not found.
+        /// </summary>
+        public T? GetById<T, ID>(ID id) where T : class
         {
             using SqlConnection connection = new(ConnectionString);
             return connection.Get<T>(id);
@@ -24,6 +27,8 @@ namespace awisk.common.Data.Db
 
         public T Insert<T>(T item) where T : class
         {
+            ArgumentNullException.ThrowIfNull(item);
+
             using SqlConnection connection = new(ConnectionString);
             connection.Insert(item);
             return item;
@@ -31,24 +36,35 @@ namespace awisk.common.Data.Db
 
         public void Insert<T>(IEnumerable<T> items) where T : class
         {
+            ArgumentNullException.ThrowIfNull(items);
+
             using SqlConnection connection = new(ConnectionString);
             connection.Insert(items);
         }
 
         public bool Update<T>(T item) where T : class
         {
+            ArgumentNullException.ThrowIfNull(item);
+
             using SqlConnection connection = new(ConnectionString);
             return connection.Update(item);
         }
 
         public bool Delete<T, ID>(ID id) where T : class
         {
-            T byId = GetById<T, ID>(id);
+            T? byId = GetById<T, ID>(id);
+            if (byId == null)
+            {
+                return false;
+            }
+
             return Delete(byId);
         }
 
         public bool Delete<T>(T item) where T : class
         {
+            ArgumentNullException.ThrowIfNull(item);
+
             using SqlConnection connection = new(ConnectionString);
             return connection.Delete(item);
         }
@@ -147,39 +163,232 @@ namespace awisk.common.Data.Db
 
         public static string GetPagingStatement(int? page, int? pageSize)
         {
-            int num = 100;
-            int num2;
-            string result = "";
-            if (pageSize.HasValue)
+            int size = pageSize ?? 100;
+            if (page.HasValue && page.Value > 0)
             {
-                num = pageSize.Value;
+                int offset = (page.Value - 1) * size;
+                return $" OFFSET {offset} ROWS FETCH NEXT {size} ROWS ONLY";
             }
-
-            if (page.HasValue)
-            {
-                num2 = page.Value;
-                result = $" OFFSET {num2} ROWS FETCH NEXT {num} ROWS ONLY";
-            }
-
-            return result;
+            return $" OFFSET 0 ROWS FETCH NEXT {size} ROWS ONLY";
         }
 
-        public static IEnumerable<IEnumerable<T>> CreateBatches<T>(IEnumerable<T> items)
-        {
-            List<List<T>> batches = [];
-            List<T> batch;
-            List<T> tempItems = [];
-            tempItems.AddRange(items);
+        private const int DefaultBatchSize = 2000;
 
+        /// <summary>
+        /// Splits a collection into batches of a specified size for batch processing.
+        /// </summary>
+        /// <typeparam name="T">The type of items in the collection</typeparam>
+        /// <param name="items">The collection to batch</param>
+        /// <param name="batchSize">The size of each batch (default: 2000)</param>
+        /// <returns>An enumerable of batches</returns>
+        public static IEnumerable<IEnumerable<T>> CreateBatches<T>(IEnumerable<T> items, int batchSize = DefaultBatchSize)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+
+            if (batchSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(batchSize), "Batch size must be greater than zero.");
+            }
+
+            var tempItems = items.ToList();
+            var batches = new List<List<T>>();
 
             while (tempItems.Count > 0)
             {
-                batch = [.. tempItems.Take(2000)];
+                var batch = tempItems.Take(batchSize).ToList();
                 batches.Add(batch);
                 tempItems.RemoveRange(0, batch.Count);
             }
 
             return batches;
+        }
+
+        // ───────────────────────────────────────────────
+        // Async CRUD Operations
+        // ───────────────────────────────────────────────
+
+        public async Task<IEnumerable<T>> GetAllAsync<T>() where T : class
+        {
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.GetAllAsync<T>().ConfigureAwait(false);
+        }
+
+        public async Task<T?> GetByIdAsync<T, ID>(ID id) where T : class
+        {
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.GetAsync<T>(id).ConfigureAwait(false);
+        }
+
+        public async Task<T> InsertAsync<T>(T item) where T : class
+        {
+            ArgumentNullException.ThrowIfNull(item);
+
+            using SqlConnection connection = new(ConnectionString);
+            await connection.InsertAsync(item).ConfigureAwait(false);
+            return item;
+        }
+
+        public async Task InsertAsync<T>(IEnumerable<T> items) where T : class
+        {
+            ArgumentNullException.ThrowIfNull(items);
+
+            using SqlConnection connection = new(ConnectionString);
+            await connection.InsertAsync(items).ConfigureAwait(false);
+        }
+
+        public async Task<bool> UpdateAsync<T>(T item) where T : class
+        {
+            ArgumentNullException.ThrowIfNull(item);
+
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.UpdateAsync(item).ConfigureAwait(false);
+        }
+
+        public async Task<bool> DeleteAsync<T, ID>(ID id) where T : class
+        {
+            T? byId = await GetByIdAsync<T, ID>(id).ConfigureAwait(false);
+            if (byId == null)
+            {
+                return false;
+            }
+
+            return await DeleteAsync(byId).ConfigureAwait(false);
+        }
+
+        public async Task<bool> DeleteAsync<T>(T item) where T : class
+        {
+            ArgumentNullException.ThrowIfNull(item);
+
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.DeleteAsync(item).ConfigureAwait(false);
+        }
+
+        // ───────────────────────────────────────────────
+        // Async Query Operations
+        // ───────────────────────────────────────────────
+
+        public async Task<int> ExecuteAsync(string sql, object? parameters, CommandType commandType)
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.ExecuteAsync(command).ConfigureAwait(false);
+        }
+
+        public async Task<IReadOnlyList<dynamic>> QueryAsync(string sql, object? parameters, CommandType commandType)
+        {
+            using SqlConnection connection = new(ConnectionString);
+            var result = await connection.QueryAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+            return result.AsList();
+        }
+
+        public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? parameters, CommandType commandType)
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            var result = await connection.QueryAsync<T>(command).ConfigureAwait(false);
+            return result.AsList();
+        }
+
+        public async Task<dynamic> QueryFirstAsync(string sql, object? parameters, CommandType commandType)
+        {
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QueryFirstAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+        }
+
+        public async Task<T> QueryFirstAsync<T>(string sql, object? parameters, CommandType commandType)
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QueryFirstAsync<T>(command).ConfigureAwait(false);
+        }
+
+        public async Task<dynamic> QueryFirstOrDefaultAsync(string sql, object? parameters, CommandType commandType)
+        {
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QueryFirstOrDefaultAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+        }
+
+        public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType)
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QueryFirstOrDefaultAsync<T>(command).ConfigureAwait(false);
+        }
+
+        public async Task<dynamic> QuerySingleAsync(string sql, object? parameters, CommandType commandType)
+        {
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QuerySingleAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+        }
+
+        public async Task<T> QuerySingleAsync<T>(string sql, object? parameters, CommandType commandType)
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QuerySingleAsync<T>(command).ConfigureAwait(false);
+        }
+
+        public async Task<dynamic> QuerySingleOrDefaultAsync(string sql, object? parameters, CommandType commandType)
+        {
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QuerySingleOrDefaultAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+        }
+
+        public async Task<T> QuerySingleOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType)
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QuerySingleOrDefaultAsync<T>(command).ConfigureAwait(false);
+        }
+
+        // ───────────────────────────────────────────────
+        // Count Operations
+        // ───────────────────────────────────────────────
+
+        public int Count<T>() where T : class
+        {
+            var tableName = typeof(T).Name;
+            var sql = $"SELECT COUNT(*) FROM [{tableName}]";
+            using SqlConnection connection = new(ConnectionString);
+            return connection.QuerySingle<int>(sql);
+        }
+
+        public async Task<int> CountAsync<T>() where T : class
+        {
+            var tableName = typeof(T).Name;
+            var sql = $"SELECT COUNT(*) FROM [{tableName}]";
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QuerySingleAsync<int>(sql).ConfigureAwait(false);
+        }
+
+        public int Count<T>(string sql, object? parameters, CommandType commandType) where T : class
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            return connection.QuerySingle<int>(command);
+        }
+
+        public async Task<int> CountAsync<T>(string sql, object? parameters, CommandType commandType) where T : class
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            using SqlConnection connection = new(ConnectionString);
+            return await connection.QuerySingleAsync<int>(command).ConfigureAwait(false);
+        }
+
+        // ───────────────────────────────────────────────
+        // Exists Operations
+        // ───────────────────────────────────────────────
+
+        public bool Exists<T, ID>(ID id) where T : class
+        {
+            T? entity = GetById<T, ID>(id);
+            return entity != null;
+        }
+
+        public async Task<bool> ExistsAsync<T, ID>(ID id) where T : class
+        {
+            T? entity = await GetByIdAsync<T, ID>(id).ConfigureAwait(false);
+            return entity != null;
         }
     }
 }

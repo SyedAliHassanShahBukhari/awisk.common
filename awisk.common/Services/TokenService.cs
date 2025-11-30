@@ -2,8 +2,6 @@
 using awisk.common.DTOs.Responses;
 using awisk.common.Helpers;
 using awisk.common.Interfaces;
-using Azure;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -31,9 +29,15 @@ namespace awisk.common.Services
                 new Claim(ClaimTypes.NameIdentifier, UniversalOpertaions.IfNullEmptyString(user?.Id)),
                 new Claim(ClaimTypes.Name, UniversalOpertaions.IfNullEmptyString(user?.FullName))
             ];
-            foreach (var role in roles.Split(","))
+            if (!string.IsNullOrWhiteSpace(roles))
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                foreach (var role in roles.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (!string.IsNullOrWhiteSpace(role))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+                }
             }
             GetJwtHandler(claims, out JwtSecurityToken token, out JwtSecurityTokenHandler tokenHandler);
             return tokenHandler.WriteToken(token);
@@ -64,9 +68,15 @@ namespace awisk.common.Services
                 new Claim(ClaimTypes.Name, UniversalOpertaions.IfNullEmptyString(response.FullName)),
                 new Claim("Token", UniversalOpertaions.IfNullEmptyString(response.Token))
             ];
-            foreach (var role in response.Roles.Split(","))
+            if (!string.IsNullOrWhiteSpace(response.Roles))
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                foreach (var role in response.Roles.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (!string.IsNullOrWhiteSpace(role))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role));
+                    }
+                }
             }
             return claims;
         }

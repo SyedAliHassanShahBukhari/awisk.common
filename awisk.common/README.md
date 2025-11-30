@@ -2,30 +2,100 @@
 
 ## Compatible with .NET 9 (net9.0)
 
-`awisk.Common` is a shared utility library that provides reusable components, helpers, and extensions commonly used across .NET projects. This package helps ensure consistency, maintainability, and reduces boilerplate code in applications targeting .NET 9.
+`awisk.Common` is a comprehensive shared utility library that provides reusable components, helpers, and extensions commonly used across .NET projects. This package helps ensure consistency, maintainability, and reduces boilerplate code in applications targeting .NET 9.
 
 ---
 
 ## Features
 
-- Authentication and JWT support
-  - `TokenService`, `JwtSettings`, `AuthConfig`, `AddAuthenticationWrapper`
-- API helpers
-  - `ApiService`, `IApiService`
-- DTOs and responses
-  - `TokenResponseDto`, `ListItemResponseDto`, `GenericResponseDto`
-- Database repositories and migrations
-  - `RepositoryBasePostgreSql`, `RepositoryBaseMySql`, `RepositoryBaseSqlServer`
-  - `PostgreSqlMigrator`, `MySqlMigrator`, `SqlMigrator`
-  - `ExceptionLogMigration`, migration helpers and `DataTypes`
-- Helpers and extensions
-  - `UniversalOpertaions`, `EnumHelper`, `RandomCodeGenerator`, `MigrationExtensions`
-- Swagger with bearer token support
-  - `SwaggerGenWithToken`
-- Service registration helpers for DI
-  - `DbServiceCollection`, `SwaggerGenWithToken`, authentication/service wrappers
-- Config and settings classes
-  - `ApplicationSettings`, `ApiSettings`, `PasswordSettings`, `ApplicationUser`, `JwtSettings`
+### 🔐 Authentication and JWT Support
+- **TokenService** - JWT token generation and management
+- **JwtSettings** - JWT configuration settings
+- **AuthConfig** - Authentication configuration
+- **AddAuthenticationWrapper** - Easy authentication setup with JWT Bearer and Cookie authentication
+
+### 🌐 API Helpers
+- **ApiService** - HTTP client wrapper with support for GET, POST, PUT, DELETE, and file uploads
+- **IApiService** - Service interface for API operations
+
+### 📦 DTOs and Responses
+- **TokenResponseDto** - JWT token response model
+- **ListItemResponseDto** - Generic list item response
+- **GenericResponseDto<T>** - Generic response wrapper with status codes
+
+### 🗄️ Database Support
+
+#### Repositories (Dapper-based)
+- **RepositoryBaseSqlServer** - SQL Server repository with full CRUD operations
+- **RepositoryBaseMySql** - MySQL repository with full CRUD operations
+- **RepositoryBasePostgreSql** - PostgreSQL repository with full CRUD operations
+- **IRepositoryBase** - Repository interface with query methods
+
+#### Base Entity Classes
+- **BaseGuidEntity** - Base entity with `Guid` primary key (`[ExplicitKey]`)
+- **BaseIntEntity** - Base entity with `int` primary key (`[Key]`)
+- **BaseLongEntity** - Base entity with `long` primary key (`[Key]`)
+- **BaseEntity<T>** - Generic base entity supporting any ID type (int, long, Guid, string, etc.)
+
+#### Entity Framework Core Support
+- **ApplicationDbContext** - Base DbContext with Identity support
+- **DbContextWrapper** - Generic extension methods for registering DbContext with:
+  - SQL Server, MySQL, and PostgreSQL support
+  - Generic methods for custom DbContext types
+  - Migration assembly support
+  - Password settings configuration
+  - Both generic and non-generic overloads
+
+#### Database Migrations (FluentMigrator)
+- **SqlMigrator** - SQL Server migration runner
+- **MySqlMigrator** - MySQL migration runner
+- **PostgreSqlMigrator** - PostgreSQL migration runner
+- **ExceptionLogMigration** - Exception logging migration
+- **MigrationExtensions** - Helper extensions for migrations
+
+### 🛠️ Helpers and Extensions
+
+#### UniversalOperations (Comprehensive Utility Library)
+- **UniversalOperations** - Core utilities (Guid, string null checks)
+- **UniversalOperations.Strings** - String manipulation, validation, encoding
+- **UniversalOperations.Numbers** - Number operations and conversions
+- **UniversalOperations.Dates** - Date and time utilities
+- **UniversalOperations.Json** - JSON serialization helpers
+- **UniversalOperations.Crypto** - Cryptographic operations
+- **UniversalOperations.Collections** - Collection utilities
+- **UniversalOperations.Parsing** - Type parsing and conversion
+- **UniversalOperations.Reflection** - Reflection utilities
+- **UniversalOperations.UrlsAndPaths** - URL and path manipulation
+- **UniversalOperations.Async** - Async operation helpers
+- **UniversalOperations.Performance** - Performance monitoring utilities
+
+#### Other Helpers
+- **EnumHelper** - Comprehensive enumeration utilities including:
+  - Description attribute support
+  - Select list generation for dropdowns
+  - Dictionary and tuple conversions
+  - Safe parsing with fallback
+  - Flags enum support
+  - JSON-friendly conversions
+- **RandomCodeGenerator** - Random code generation
+
+### 📚 Swagger Integration
+- **SwaggerGenWithToken** - Swagger/OpenAPI configuration with JWT Bearer token support
+- **SwaggerGen** - Swagger configuration model
+
+### 🔧 Service Registration Helpers
+- **DbContextWrapper** - Database context registration extensions
+- **AddAuthenticationWrapper** - Authentication setup extensions
+- **DbServiceCollection** - Database service collection helpers
+- **ServicesCollection** - General service registration helpers
+
+### ⚙️ Configuration Classes
+- **ApplicationSettings** - Main application configuration
+- **ApiSettings** - API configuration
+- **PasswordSettings** - Password policy settings
+- **JwtSettings** - JWT token settings
+- **AuthConfig** - Authentication configuration
+- **ApplicationUser** - Extended Identity user class
 
 ---
 
@@ -34,19 +104,404 @@
 Install via NuGet Package Manager:
 
 ```bash
-dotnet add package awisk.Common --version 2.0.11
+dotnet add package awisk.Common --version 2.0.12
+```
+
+Or via Package Manager Console:
+
+```powershell
+Install-Package awisk.Common -Version 2.0.12
 ```
 
 ---
 
-## Quick start
+## Quick Start
 
-- Register database, authentication, and Swagger helpers in your `Program.cs` using the library's service collection extensions.
-- Use provided repository bases and migrators for multi-database support (PostgreSQL, MySQL, SQL Server).
-- Use `TokenService` and DTOs for token-based authentication flows.
+### 1. Database Setup
+
+#### Using Entity Framework Core
+
+```csharp
+using awisk.common.ServiceCollection;
+using awisk.common.Classes;
+
+// SQL Server with default settings
+services.AddSqlDbContextDefault<ApplicationDbContext>(connectionString);
+
+// SQL Server with migration assembly
+services.AddSqlDbContextDefault<ApplicationDbContext>(connectionString, "YourApp.Migrations");
+
+// SQL Server with custom DbContext and Identity
+services.AddSqlDbContextDefault<MyDbContext, MyUser>(connectionString, "YourApp.Migrations");
+
+// MySQL
+services.AddMySqlDbContextDefault<ApplicationDbContext>(connectionString, "YourApp.Migrations");
+
+// PostgreSQL
+services.AddPostgreSqlDbContextDefault<ApplicationDbContext>(connectionString, "YourApp.Migrations");
+
+// With password settings
+var settings = new ApplicationSettings
+{
+    ConnectionString = connectionString,
+    PasswordSettings = new PasswordSettings
+    {
+        RequireDigit = true,
+        RequireLowercase = true,
+        RequiredLength = 8
+    }
+};
+services.AddSqlDbContextWithPasswordSettings(settings, "YourApp.Migrations");
+```
+
+#### Using Dapper Repositories
+
+```csharp
+using awisk.common.Data.Db;
+
+// SQL Server
+var repository = new RepositoryBaseSqlServer(connectionString);
+var products = repository.GetAll<Product>();
+
+// MySQL
+var repository = new RepositoryBaseMySql(connectionString);
+var user = repository.GetById<User, int>(userId);
+
+// PostgreSQL
+var repository = new RepositoryBasePostgreSql(connectionString);
+var result = repository.Query<User>("SELECT * FROM Users WHERE IsActive = @IsActive", 
+    new { IsActive = true }, CommandType.Text);
+```
+
+### 2. Base Entity Classes
+
+```csharp
+using awisk.common.Data.Db;
+using Dapper.Contrib.Extensions;
+
+// Using Guid-based entity
+public class User : BaseGuidEntity
+{
+    // Id is already defined as Guid with [ExplicitKey]
+    public string Email { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+}
+
+// Using int-based entity
+public class Product : BaseIntEntity
+{
+    // Id is already defined as int with [Key]
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+}
+
+// Using long-based entity
+public class Order : BaseLongEntity
+{
+    // Id is already defined as long with [Key]
+    public DateTime OrderDate { get; set; }
+    public decimal Total { get; set; }
+}
+
+// Using generic base entity with custom ID type
+public class Category : BaseEntity<string>
+{
+    [ExplicitKey]  // Required for non-auto-increment IDs
+    public override string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+}
+```
+
+### 3. Authentication Setup
+
+```csharp
+using awisk.common.ServiceCollection;
+using awisk.common.Classes;
+
+var jwtSettings = new JwtSettings
+{
+    Issuer = "YourApp",
+    Audience = "YourAppUsers",
+    SecretKey = "your-secret-key-here",
+    Expiry = 7  // days
+};
+
+// For API-only applications
+services.AddDefaultAuthenticationForApi(jwtSettings);
+
+// For web applications with cookies
+services.AddDefaultAuthentication(jwtSettings);
+
+// With custom configuration
+var authConfig = new AuthConfig
+{
+    AuthScheme = "MyAuthScheme",
+    AuthCookie = "MyAuthCookie",
+    LoginUrl = "/Account/Login",
+    LogoutUrl = "/Account/Logout",
+    TokenExpire = 30
+};
+services.AddDefaultAuthentication(authConfig, jwtSettings);
+```
+
+### 4. Token Service
+
+```csharp
+using awisk.common.Services;
+using awisk.common.Classes;
+
+var tokenService = new TokenService(applicationSettings);
+
+// Generate token from user and roles
+var response = tokenService.GenerateToken(user, "Admin,User", "Login successful");
+
+// Generate token string
+var tokenString = tokenService.GenerateJwtTokenStr(user, "Admin,User");
+```
+
+### 5. API Service
+
+```csharp
+using awisk.common.Services;
+
+var apiService = new ApiService(httpClient);
+
+// GET request
+var data = await apiService.GetAsync<MyModel>(new Uri("https://api.example.com/data"), bearerToken);
+
+// POST request
+var result = await apiService.PostAsync<RequestModel, ResponseModel>(
+    new Uri("https://api.example.com/endpoint"),
+    requestData,
+    bearerToken);
+
+// POST with file upload
+var fileResult = await apiService.PostWithFileAsync<RequestModel, ResponseModel>(
+    new Uri("https://api.example.com/upload"),
+    requestData,
+    file,
+    "file",
+    bearerToken);
+```
+
+### 6. Swagger Configuration
+
+```csharp
+using awisk.common.ServiceCollection;
+using awisk.common.Classes;
+
+var swaggerConfig = new SwaggerGen
+{
+    Title = "My API",
+    Version = "v1",
+    Description = "API Documentation",
+    ContactName = "Support Team",
+    ContactEmail = "support@example.com",
+    ContactUrl = "https://example.com/support"
+};
+
+services.InitSwaggerGenWithToken(swaggerConfig);
+```
+
+### 7. Universal Operations Helpers
+
+```csharp
+using awisk.common.Helpers;
+
+// String operations
+var safeString = someString.IfNullEmptyString();
+var trimmed = someString.TrimSafe();
+var isValid = email.IsValidEmail();
+var slug = title.ToSlug();
+
+// Guid operations
+var newGuid = UniversalOpertaions.NewGuid();
+var guidString = UniversalOpertaions.NewGuidStr();
+var isEmpty = myGuid.IsEmpty();
+
+// Date operations
+var utcNow = UniversalOpertaions.GetUtcNow();
+var formatted = date.ToFormattedString("yyyy-MM-dd");
+
+// Number operations
+var parsed = UniversalOpertaions.ToInt("123", 0);
+var isNumeric = "123".IsNumeric();
+```
+
+### 8. Enum Helper
+
+```csharp
+using awisk.common.Helpers;
+using System.ComponentModel;
+
+// Define an enum with descriptions
+public enum UserStatus
+{
+    [Description("Active User")]
+    Active = 1,
+    [Description("Inactive User")]
+    Inactive = 2,
+    [Description("Pending Verification")]
+    Pending = 3
+}
+
+// Get description from enum value
+var status = UserStatus.Active;
+var description = status.ToDescription(); // Returns "Active User"
+
+// Get enum from description
+var parsedStatus = EnumHelper.FromDescription<UserStatus>("Active User");
+
+// Get select list for dropdowns
+var selectList = EnumHelper.GetSelectListFromEnum<UserStatus>();
+// Returns IEnumerable<ListItemResponseDto<UserStatus>> with Id and Value (description)
+
+// Get text select list (uses enum name instead of description)
+var textList = EnumHelper.GetTextSelectListFromEnum<UserStatus>();
+
+// Convert to dictionary (int -> description)
+var dict = EnumHelper.ToDictionary<UserStatus>();
+// { 1: "Active User", 2: "Inactive User", 3: "Pending Verification" }
+
+// Convert to tuple list
+var tuples = EnumHelper.ToTupleList<UserStatus>();
+// Returns: [(1, "Active User"), (2, "Inactive User"), (3, "Pending Verification")]
+
+// Get all names
+var names = EnumHelper.GetNames<UserStatus>(); // ["Active", "Inactive", "Pending"]
+
+// Get all values
+var values = EnumHelper.GetValues<UserStatus>(); // [UserStatus.Active, UserStatus.Inactive, ...]
+
+// Safe parsing with fallback
+var parsed = EnumHelper.ParseSafe<UserStatus>("Invalid", UserStatus.Active);
+// Returns UserStatus.Active if parsing fails
+
+// Convert enum to int
+var intValue = UserStatus.Active.ToInt(); // Returns 1
+
+// Check if integer is valid enum value
+var isValid = EnumHelper.IsDefined<UserStatus>(1); // Returns true
+
+// JSON-friendly list
+var jsonList = EnumHelper.ToJsonList<UserStatus>();
+// Returns: [{ id: 1, value: "Active User" }, { id: 2, value: "Inactive User" }, ...]
+
+// Flags enum support
+[Flags]
+public enum Permissions
+{
+    [Description("Read Access")]
+    Read = 1,
+    [Description("Write Access")]
+    Write = 2,
+    [Description("Delete Access")]
+    Delete = 4
+}
+
+var permissions = Permissions.Read | Permissions.Write;
+var hasRead = permissions.HasFlagFast(Permissions.Read); // Returns true
+var combined = permissions.ToCombinedDescription(); // Returns "Read Access, Write Access"
+```
+
+---
+
+## Database Migrations
+
+### Running Migrations
+
+The library includes FluentMigrator-based migration runners for each database:
+
+```csharp
+// SQL Server
+SqlMigrator.Migrator(args, "YourApp.Migrations", "YourApp.Migrator");
+
+// MySQL
+MySqlMigrator.Migrator(args, "YourApp.Migrations", "YourApp.Migrator");
+
+// PostgreSQL
+PostgreSqlMigrator.Migrator(args, "YourApp.Migrations", "YourApp.Migrator");
+```
+
+Command-line usage:
+```bash
+YourApp.Migrator.exe server database -u username -p password -m up -q
+```
+
+---
+
+## Repository Methods
+
+All repository classes support the following operations:
+
+- `GetAll<T>()` - Get all entities
+- `GetById<T, ID>(ID id)` - Get entity by ID
+- `Insert<T>(T item)` - Insert single entity
+- `Insert<T>(IEnumerable<T> items)` - Insert multiple entities
+- `Update<T>(T item)` - Update entity
+- `Delete<T, ID>(ID id)` - Delete by ID
+- `Delete<T>(T item)` - Delete entity
+- `Execute(sql, parameters, commandType)` - Execute SQL command
+- `Query<T>(sql, parameters, commandType)` - Query with typed results
+- `QueryFirst<T>(sql, parameters, commandType)` - Get first result
+- `QueryFirstOrDefault<T>(sql, parameters, commandType)` - Get first or default
+- `QuerySingle<T>(sql, parameters, commandType)` - Get single result
+- `QuerySingleOrDefault<T>(sql, parameters, commandType)` - Get single or default
+- `DeleteByIdAsync(sql, parameters, commandType)` - Async delete
+
+### Paging Support
+
+```csharp
+// SQL Server
+var paging = RepositoryBaseSqlServer.GetPagingStatement(page: 2, pageSize: 20);
+// Returns: " OFFSET 20 ROWS FETCH NEXT 20 ROWS ONLY"
+
+// MySQL
+var paging = RepositoryBaseMySql.GetPagingStatement(page: 2, pageSize: 20);
+// Returns: " LIMIT 20 OFFSET 20"
+
+// PostgreSQL
+var paging = RepositoryBasePostgreSql.GetPagingStatement(page: 2, pageSize: 20);
+// Returns: " LIMIT 20 OFFSET 20"
+```
+
+---
+
+## Requirements
+
+- .NET 9.0 or later
+- SQL Server, MySQL, or PostgreSQL database
+- (Optional) Entity Framework Core 9.0 for EF Core features
+- (Optional) FluentMigrator 7.1.0 for migrations
+
+---
+
+## Key Improvements in v2.0.12
+
+- ✅ Generic DbContext registration methods for all database providers
+- ✅ Migration assembly support in all DbContext methods
+- ✅ Fixed paging SQL syntax for MySQL and PostgreSQL
+- ✅ Improved null safety in repository methods
+- ✅ Enhanced ApiService with proper header management
+- ✅ Fixed string splitting in TokenService
+- ✅ BaseGuidEntity, BaseIntEntity, BaseLongEntity for consistent entity base classes
+- ✅ Generic BaseEntity<T> for flexible ID types
+- ✅ Comprehensive UniversalOperations helper library
 
 ---
 
 ## License
 
 See `LICENSE.txt` in the package for license terms.
+
+---
+
+## Support
+
+For issues, questions, or contributions, please refer to the project repository or contact the maintainers.
+
+---
+
+**Version:** 2.0.12  
+**Author:** Syed Ali Hassan  
+**Company:** awisk

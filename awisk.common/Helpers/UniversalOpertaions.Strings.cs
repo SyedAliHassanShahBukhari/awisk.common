@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Net.Mail;
+﻿using System.Net.Mail;
 using System.Text;
 
 namespace awisk.common.Helpers
@@ -19,21 +17,35 @@ namespace awisk.common.Helpers
 
         public static string ToSlug(this string? s)
         {
-            if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return string.Empty;
+            }
+
             var sb = new StringBuilder(s.Length);
             foreach (var ch in s.ToLowerInvariant())
+            {
                 sb.Append(char.IsLetterOrDigit(ch) ? ch : (char.IsWhiteSpace(ch) || ch is '-' or '_' ? '-' : '\0'));
+            }
+
             var slug = sb.ToString().Replace("\0", string.Empty).Trim('-');
             return string.Join("-", slug.Split('-', StringSplitOptions.RemoveEmptyEntries));
         }
 
         public static string ToSafeFileName(this string? s, char replacement = '_')
         {
-            if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return string.Empty;
+            }
+
             var invalid = System.IO.Path.GetInvalidFileNameChars();
             var sb = new StringBuilder(s.Length);
             foreach (var ch in s!)
+            {
                 sb.Append(invalid.Contains(ch) ? replacement : ch);
+            }
+
             return sb.ToString();
         }
 
@@ -43,13 +55,21 @@ namespace awisk.common.Helpers
         public static bool IsDigits(this string? s) => !string.IsNullOrEmpty(s) && s.All(char.IsDigit);
         public static bool IsValidEmail(this string? email)
         {
-            if (string.IsNullOrWhiteSpace(email)) return false;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return false;
+            }
+
             try { _ = new MailAddress(email); return true; } catch { return false; }
         }
 
         public static bool IsJson(this string? s)
         {
-            if (string.IsNullOrWhiteSpace(s)) return false;
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return false;
+            }
+
             s = s.Trim();
             return (s.StartsWith('{') && s.EndsWith('}')) || (s.StartsWith('[') && s.EndsWith(']'));
         }

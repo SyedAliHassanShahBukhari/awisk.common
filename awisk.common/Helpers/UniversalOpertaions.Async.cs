@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace awisk.common.Helpers
+﻿namespace awisk.common.Helpers
 {
     public static partial class UniversalOpertaions
     {
@@ -39,7 +35,11 @@ namespace awisk.common.Helpers
             using var cts = new CancellationTokenSource();
             var delayTask = Task.Delay(milliseconds, cts.Token);
             var completed = await Task.WhenAny(task, delayTask).ConfigureAwait(false);
-            if (completed == delayTask) throw new TimeoutException();
+            if (completed == delayTask)
+            {
+                throw new TimeoutException();
+            }
+
             cts.Cancel();
             return await task.ConfigureAwait(false);
         }

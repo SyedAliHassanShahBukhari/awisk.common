@@ -1,8 +1,5 @@
 ﻿using awisk.common.DTOs.Responses;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
 
 namespace awisk.common.Helpers
@@ -38,15 +35,24 @@ namespace awisk.common.Helpers
             return descriptionAttribute?.Description ?? enumValue.ToString();
         }
 
+        /// <summary>
+        /// Gets the description attribute value of an enum, or returns the enum name if no description is found.
+        /// </summary>
         public static string ToDescription(this Enum enumValue)
         {
-            var field = enumValue?.GetType().GetField(enumValue.ToString());
+            if (enumValue == null)
+            {
+                throw new ArgumentNullException(nameof(enumValue));
+            }
+
+            var field = enumValue.GetType().GetField(enumValue.ToString());
             if (field != null &&
                 Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attr)
             {
                 return attr.Description;
             }
-            throw new ArgumentException("Item not found.", nameof(enumValue));
+            // Return enum name as fallback instead of throwing exception
+            return enumValue.ToString();
         }
 
         // ───────────────────────────────────────────────
@@ -63,11 +69,15 @@ namespace awisk.common.Helpers
                 if (Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attr)
                 {
                     if (string.Equals(attr.Description, description, StringComparison.OrdinalIgnoreCase))
+                    {
                         return (T)field.GetValue(null)!;
+                    }
                 }
 
                 if (string.Equals(field.Name, description, StringComparison.OrdinalIgnoreCase))
+                {
                     return (T)field.GetValue(null)!;
+                }
             }
             throw new ArgumentException($"'{description}' is not a valid description or name for enum {typeof(T).Name}");
         }
@@ -119,12 +129,19 @@ namespace awisk.common.Helpers
 
         /// <summary>
         /// Returns combined flags as comma-separated description.
+        /// Works with [Flags] enums to get descriptions of all set flags.
         /// </summary>
         public static string ToCombinedDescription(this Enum flagsEnum)
         {
+            if (flagsEnum == null)
+            {
+                throw new ArgumentNullException(nameof(flagsEnum));
+            }
+
             var values = Enum.GetValues(flagsEnum.GetType()).Cast<Enum>();
-            var active = values.Where(flagsEnum.HasFlag);
-            return string.Join(", ", active.Select(v => v.ToDescription()));
+            var active = values.Where(v => Convert.ToInt64(v) != 0 && flagsEnum.HasFlag(v));
+            var descriptions = active.Select(v => v.ToDescription());
+            return string.Join(", ", descriptions);
         }
 
         /// <summary>
