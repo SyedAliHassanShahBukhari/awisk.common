@@ -22,6 +22,8 @@
 - **TokenResponseDto** - JWT token response model
 - **ListItemResponseDto** - Generic list item response
 - **GenericResponseDto<T>** - Generic response wrapper with status codes
+- **PagedRequest** - Request model for pagination (page number, page size, sorting)
+- **PagedResponse<T>** - Response model for paginated data with metadata
 
 ### 🗄️ Database Support
 
@@ -88,6 +90,8 @@
 - **AddAuthenticationWrapper** - Authentication setup extensions
 - **DbServiceCollection** - Database service collection helpers
 - **ServicesCollection** - General service registration helpers
+- **ExceptionLogServiceExtensions** - Exception logging service registration
+- **ExceptionMiddlewareExtensions** - Global exception handler middleware registration
 
 ### ⚙️ Configuration Classes
 - **ApplicationSettings** - Main application configuration
@@ -96,6 +100,14 @@
 - **JwtSettings** - JWT token settings
 - **AuthConfig** - Authentication configuration
 - **ApplicationUser** - Extended Identity user class
+- **ExceptionLog** - Exception log entity for database storage
+
+### 🛡️ Error Handling & Result Pattern
+- **Result<T>** - Functional result pattern for explicit error handling
+- **Result** - Non-generic result for void operations
+- **GlobalExceptionHandlerMiddleware** - ASP.NET Core middleware for global exception handling
+- **IExceptionLogService** - Service interface for exception logging
+- **ExceptionLogService** - Database-backed exception logging implementation
 
 ---
 
@@ -284,7 +296,115 @@ var fileResult = await apiService.PostWithFileAsync<RequestModel, ResponseModel>
     bearerToken);
 ```
 
-### 6. Swagger Configuration
+### 6. Pagination Support
+
+```csharp
+using awisk.common.DTOs.Requests;
+using awisk.common.DTOs.Responses;
+
+// Create a paged request
+var request = new PagedRequest
+{
+    PageNumber = 1,
+    PageSize = 20,
+    SortBy = "Name",
+    SortDescending = false
+};
+
+// Use with repository (example)
+var totalCount = repository.Count<Product>();
+var products = repository.Query<Product>(
+    $"SELECT * FROM Products ORDER BY {request.SortBy} {(request.SortDescending ? "DESC" : "ASC")} OFFSET {request.Skip} ROWS FETCH NEXT {request.Take} ROWS ONLY",
+    null,
+    System.Data.CommandType.Text);
+
+// Create paged response
+var response = new PagedResponse<Product>(products, request, totalCount);
+
+// Response contains:
+// - response.Data: List of products
+// - response.PageNumber: Current page (1)
+// - response.PageSize: Items per page (20)
+// - response.TotalCount: Total items
+// - response.TotalPages: Calculated total pages
+// - response.HasPreviousPage: false (first page)
+// - response.HasNextPage: true/false
+```
+
+### 7. Result Pattern
+
+```csharp
+using awisk.common.Common;
+
+// For operations that return a value
+public Result<User> GetUser(int id)
+{
+    var user = repository.GetById<User, int>(id);
+    if (user == null)
+        return Result<User>.Failure("User not found");
+    
+    return Result<User>.Success(user);
+}
+
+// Usage
+var result = GetUser(123);
+if (result.IsSuccess)
+{
+    var user = result.Value!; // Safe to use
+    Console.WriteLine(user.Name);
+}
+else
+{
+    Console.WriteLine($"Error: {result.ErrorMessage}");
+}
+
+// For void operations
+public Result DeleteUser(int id)
+{
+    var user = repository.GetById<User, int>(id);
+    if (user == null)
+        return Result.Failure("User not found");
+    
+    repository.Delete(user);
+    return Result.Success();
+}
+
+// Implicit conversions
+Result<int> successResult = 42; // Automatically creates Success(42)
+Result<string> failureResult = "Error message"; // Automatically creates Failure("Error message")
+```
+
+### 8. Global Exception Handling & Exception Logging
+
+```csharp
+using awisk.common.ServiceCollection;
+using awisk.common.Middleware;
+
+// Register exception logging service (requires IRepositoryBase to be registered)
+services.AddExceptionLogService();
+
+// Add global exception handler middleware
+app.UseGlobalExceptionHandler();
+
+// The middleware will:
+// - Catch all unhandled exceptions
+// - Return consistent error responses as GenericResponseDto<object>
+// - Log exceptions to console/application logs
+// - Log exceptions to database (if ExceptionLogService is registered)
+// - Map exception types to appropriate HTTP status codes:
+//   - ArgumentException/ArgumentNullException → 400 Bad Request
+//   - UnauthorizedAccessException → 401 Unauthorized
+//   - KeyNotFoundException/FileNotFoundException → 404 Not Found
+//   - NotImplementedException → 501 Not Implemented
+//   - TimeoutException → 408 Request Timeout
+//   - Other exceptions → 500 Internal Server Error
+
+// Manual exception logging
+var exceptionLogService = serviceProvider.GetRequiredService<IExceptionLogService>();
+await exceptionLogService.LogExceptionAsync(exception, "https://api.example.com/users");
+```
+
+### 9. Swagger Configuration
 
 ```csharp
 using awisk.common.ServiceCollection;

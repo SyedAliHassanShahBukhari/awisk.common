@@ -15,6 +15,32 @@ namespace awisk.common.Services
     {
         private readonly ApplicationSettings _applicationSettings = applicationSettings;
 
+        /// <summary>
+        /// Validates JWT settings to ensure they are properly configured.
+        /// </summary>
+        private void ValidateJwtSettings()
+        {
+            if (_applicationSettings?.JwtSettings == null)
+                throw new ArgumentNullException(nameof(_applicationSettings.JwtSettings), "JwtSettings cannot be null.");
+
+            var jwtSettings = _applicationSettings.JwtSettings;
+            
+            if (string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
+                throw new ArgumentException("JWT SecretKey cannot be null or empty.", nameof(jwtSettings.SecretKey));
+
+            if (jwtSettings.SecretKey.Length < 32)
+                throw new ArgumentException("JWT SecretKey must be at least 32 characters long for security.", nameof(jwtSettings.SecretKey));
+
+            if (string.IsNullOrWhiteSpace(jwtSettings.Issuer))
+                throw new ArgumentException("JWT Issuer cannot be null or empty.", nameof(jwtSettings.Issuer));
+
+            if (string.IsNullOrWhiteSpace(jwtSettings.Audience))
+                throw new ArgumentException("JWT Audience cannot be null or empty.", nameof(jwtSettings.Audience));
+
+            if (jwtSettings.Expiry <= 0)
+                throw new ArgumentException("JWT Expiry must be greater than zero.", nameof(jwtSettings.Expiry));
+        }
+
         public string GenerateJwtTokenStr(TokenResponseDto response)
         {
             var claims = CreateClaims(response); 
@@ -45,6 +71,7 @@ namespace awisk.common.Services
 
         private void GetJwtHandler(IEnumerable<Claim> claims, out JwtSecurityToken token, out JwtSecurityTokenHandler tokenHandler)
         {
+            ValidateJwtSettings();
             var _jwtSettings = _applicationSettings.JwtSettings;
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

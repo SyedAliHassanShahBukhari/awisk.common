@@ -78,7 +78,14 @@ namespace awisk.common.Migrators
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Migration failed: {ex.Message}");
+                    Console.Error.WriteLine($"Migration failed: {ex.Message}");
+                    Console.Error.WriteLine($"Stack Trace: {ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.Error.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                        Console.Error.WriteLine($"Inner Stack Trace: {ex.InnerException.StackTrace}");
+                    }
+                    throw; // Re-throw to indicate failure
                 }
             }
             else
