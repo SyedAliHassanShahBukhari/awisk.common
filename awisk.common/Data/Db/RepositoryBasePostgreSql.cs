@@ -3,6 +3,7 @@ using Dapper;
 using Dapper.Contrib.Extensions;
 using Npgsql;
 using System.Data;
+using System.Reflection;
 
 namespace awisk.common.Data.Db
 {
@@ -52,13 +53,9 @@ namespace awisk.common.Data.Db
 
         public bool Delete<T, ID>(ID id) where T : class
         {
-            var entity = GetById<T, ID>(id);
-            if (entity == null)
-            {
-                return false;
-            }
-
-            return Delete(entity);
+            var tableName = GetTableName<T>();
+            using var connection = new NpgsqlConnection(ConnectionString);
+            return connection.Execute($"DELETE FROM \"{tableName}\" WHERE \"Id\" = @Id", new { Id = id }) > 0;
         }
 
         public bool Delete<T>(T item) where T : class
@@ -177,23 +174,10 @@ namespace awisk.common.Data.Db
         public static IEnumerable<IEnumerable<T>> CreateBatches<T>(IEnumerable<T> items, int batchSize = DefaultBatchSize)
         {
             ArgumentNullException.ThrowIfNull(items);
-
             if (batchSize <= 0)
-            {
                 throw new ArgumentOutOfRangeException(nameof(batchSize), "Batch size must be greater than zero.");
-            }
 
-            var tempItems = items.ToList();
-            var batches = new List<List<T>>();
-
-            while (tempItems.Count > 0)
-            {
-                var batch = tempItems.Take(batchSize).ToList();
-                batches.Add(batch);
-                tempItems.RemoveRange(0, batch.Count);
-            }
-
-            return batches;
+            return items.Chunk(batchSize);
         }
 
         // ───────────────────────────────────────────────
@@ -239,13 +223,9 @@ namespace awisk.common.Data.Db
 
         public async Task<bool> DeleteAsync<T, ID>(ID id) where T : class
         {
-            T? byId = await GetByIdAsync<T, ID>(id).ConfigureAwait(false);
-            if (byId == null)
-            {
-                return false;
-            }
-
-            return await DeleteAsync(byId).ConfigureAwait(false);
+            var tableName = GetTableName<T>();
+            using var connection = new NpgsqlConnection(ConnectionString);
+            return await connection.ExecuteAsync($"DELETE FROM \"{tableName}\" WHERE \"Id\" = @Id", new { Id = id }).ConfigureAwait(false) > 0;
         }
 
         public async Task<bool> DeleteAsync<T>(T item) where T : class
@@ -374,14 +354,63 @@ namespace awisk.common.Data.Db
 
         public bool Exists<T, ID>(ID id) where T : class
         {
-            T? entity = GetById<T, ID>(id);
-            return entity != null;
+            var tableName = GetTableName<T>();
+            using var connection = new NpgsqlConnection(ConnectionString);
+            return connection.QuerySingle<int>($"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Id\" = @Id", new { Id = id }) > 0;
         }
 
         public async Task<bool> ExistsAsync<T, ID>(ID id) where T : class
         {
-            T? entity = await GetByIdAsync<T, ID>(id).ConfigureAwait(false);
-            return entity != null;
+            var tableName = GetTableName<T>();
+            using var connection = new NpgsqlConnection(ConnectionString);
+            return await connection.QuerySingleAsync<int>($"SELECT COUNT(1) FROM \"{tableName}\" WHERE \"Id\" = @Id", new { Id = id }).ConfigureAwait(false) > 0;
+        }
+
+        // ───────────────────────────────────────────────
+        // Transaction Support
+        // ───────────────────────────────────────────────
+
+        public async Task<T> ExecuteInTransactionAsync<T>(Func<IDbConnection, IDbTransaction, Task<T>> work)
+        {
+            ArgumentNullException.ThrowIfNull(work);
+            using var connection = new NpgsqlConnection(ConnectionString);
+            await connection.OpenAsync().ConfigureAwait(false);
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                var result = await work(connection, transaction).ConfigureAwait(false);
+                transaction.Commit();
+                return result;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task ExecuteInTransactionAsync(Func<IDbConnection, IDbTransaction, Task> work)
+        {
+            ArgumentNullException.ThrowIfNull(work);
+            using var connection = new NpgsqlConnection(ConnectionString);
+            await connection.OpenAsync().ConfigureAwait(false);
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                await work(connection, transaction).ConfigureAwait(false);
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        private static string GetTableName<T>()
+        {
+            var attr = typeof(T).GetCustomAttribute<TableAttribute>();
+            return attr?.Name ?? typeof(T).Name;
         }
     }
 }

@@ -56,5 +56,9 @@ namespace awisk.common.Data.Db.Interfaces
         Task<int> CountAsync<T>(string sql, object? parameters, CommandType commandType) where T : class;
         bool Exists<T, ID>(ID id) where T : class;
         Task<bool> ExistsAsync<T, ID>(ID id) where T : class;
+
+        // Transaction Support
+        Task<T> ExecuteInTransactionAsync<T>(Func<IDbConnection, IDbTransaction, Task<T>> work);
+        Task ExecuteInTransactionAsync(Func<IDbConnection, IDbTransaction, Task> work);
     }
 }

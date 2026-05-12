@@ -92,8 +92,7 @@ namespace awisk.common.Services
                 new Claim(JwtRegisteredClaimNames.Email, UniversalOpertaions.IfNullEmptyString(response.Email)),
                 new Claim(JwtRegisteredClaimNames.Jti, UniversalOpertaions.NewGuidStr()),
                 new Claim(ClaimTypes.NameIdentifier, UniversalOpertaions.IfNullEmptyString(response.Id)),
-                new Claim(ClaimTypes.Name, UniversalOpertaions.IfNullEmptyString(response.FullName)),
-                new Claim("Token", UniversalOpertaions.IfNullEmptyString(response.Token))
+                new Claim(ClaimTypes.Name, UniversalOpertaions.IfNullEmptyString(response.FullName))
             ];
             if (!string.IsNullOrWhiteSpace(response.Roles))
             {

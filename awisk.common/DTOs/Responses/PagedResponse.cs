@@ -29,7 +29,7 @@ namespace awisk.common.DTOs.Responses
         /// <summary>
         /// The total number of pages.
         /// </summary>
-        public int TotalPages => TotalCount > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
+        public int TotalPages => (TotalCount > 0 && PageSize > 0) ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
 
         /// <summary>
         /// Indicates whether there is a previous page.

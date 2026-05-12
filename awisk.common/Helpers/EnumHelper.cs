@@ -1,4 +1,5 @@
 ﻿using awisk.common.DTOs.Responses;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Reflection;
 
@@ -6,9 +7,17 @@ namespace awisk.common.Helpers
 {
     public static partial class EnumHelper
     {
-        // ───────────────────────────────────────────────
-        // Existing methods (kept for reference)
-        // ───────────────────────────────────────────────
+        private static readonly ConcurrentDictionary<(Type EnumType, string MemberName), string> _descriptionCache = new();
+
+        private static string GetCachedDescription(Type enumType, string memberName)
+        {
+            return _descriptionCache.GetOrAdd((enumType, memberName), static key =>
+            {
+                var field = key.EnumType.GetField(key.MemberName);
+                return field?.GetCustomAttribute<DescriptionAttribute>()?.Description ?? key.MemberName;
+            });
+        }
+
         public static IEnumerable<ListItemResponseDto<T>> GetSelectListFromEnum<T>() where T : Enum =>
             Enum.GetValues(typeof(T))
                 .Cast<T>()
@@ -27,32 +36,16 @@ namespace awisk.common.Helpers
                     Value = e.ToString()
                 });
 
-        private static string GetEnumDescription<T>(T enumValue) where T : Enum
-        {
-            var fieldInfo = enumValue.GetType().GetField(enumValue.ToString());
-            var descriptionAttribute = fieldInfo?.GetCustomAttributes(typeof(DescriptionAttribute), false)
-                .FirstOrDefault() as DescriptionAttribute;
-            return descriptionAttribute?.Description ?? enumValue.ToString();
-        }
+        private static string GetEnumDescription<T>(T enumValue) where T : Enum =>
+            GetCachedDescription(typeof(T), enumValue.ToString());
 
         /// <summary>
         /// Gets the description attribute value of an enum, or returns the enum name if no description is found.
         /// </summary>
         public static string ToDescription(this Enum enumValue)
         {
-            if (enumValue == null)
-            {
-                throw new ArgumentNullException(nameof(enumValue));
-            }
-
-            var field = enumValue.GetType().GetField(enumValue.ToString());
-            if (field != null &&
-                Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attr)
-            {
-                return attr.Description;
-            }
-            // Return enum name as fallback instead of throwing exception
-            return enumValue.ToString();
+            ArgumentNullException.ThrowIfNull(enumValue);
+            return GetCachedDescription(enumValue.GetType(), enumValue.ToString());
         }
 
         // ───────────────────────────────────────────────
@@ -133,15 +126,15 @@ namespace awisk.common.Helpers
         /// </summary>
         public static string ToCombinedDescription(this Enum flagsEnum)
         {
-            if (flagsEnum == null)
+            if (flagsEnum != null)
             {
-                throw new ArgumentNullException(nameof(flagsEnum));
+                var values = Enum.GetValues(flagsEnum.GetType()).Cast<Enum>();
+                var active = values.Where(v => Convert.ToInt64(v) != 0 && flagsEnum.HasFlag(v));
+                var descriptions = active.Select(v => v.ToDescription());
+                return string.Join(", ", descriptions);
             }
 
-            var values = Enum.GetValues(flagsEnum.GetType()).Cast<Enum>();
-            var active = values.Where(v => Convert.ToInt64(v) != 0 && flagsEnum.HasFlag(v));
-            var descriptions = active.Select(v => v.ToDescription());
-            return string.Join(", ", descriptions);
+            throw new ArgumentNullException(nameof(flagsEnum));
         }
 
         /// <summary>

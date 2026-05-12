@@ -58,7 +58,7 @@ namespace awisk.common.Services
 
         public async Task<TResponse?> PutAsync<TRequest, TResponse>(
         Uri url, TRequest data, string? bearerToken = null, Dictionary<string, string>? headers = null)
-        where TResponse : class, new()
+        where TResponse : class
         {
             using var request = new HttpRequestMessage(HttpMethod.Put, url)
             {
@@ -79,10 +79,7 @@ namespace awisk.common.Services
             }
 
             var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                return new();
-            }
+            response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonSerializer.Deserialize<TResponse>(json, _jsonOptions);

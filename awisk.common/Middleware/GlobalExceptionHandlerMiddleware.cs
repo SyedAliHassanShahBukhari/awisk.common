@@ -14,6 +14,12 @@ namespace awisk.common.Middleware
     /// </summary>
     public class GlobalExceptionHandlerMiddleware
     {
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionHandlerMiddleware>? _logger;
         private readonly IExceptionLogService? _exceptionLogService;
@@ -102,13 +108,7 @@ namespace awisk.common.Middleware
                 }
             }
 
-            var jsonOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = false
-            };
-
-            var json = JsonSerializer.Serialize(response, jsonOptions);
+            var json = JsonSerializer.Serialize(response, _jsonOptions);
             await context.Response.WriteAsync(json).ConfigureAwait(false);
         }
     }

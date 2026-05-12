@@ -13,9 +13,9 @@ namespace awisk.common.Data.Db
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public string UpdatedBy { get; set; } = string.Empty;
-        public DateTime UpdatedOn { get; set; } = new(1900, 01, 01);
+        public DateTime? UpdatedOn { get; set; }
         public string DeletedBy { get; set; } = string.Empty;
-        public DateTime DeletedOn { get; set; } = new(1900, 01, 01);
+        public DateTime? DeletedOn { get; set; }
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; }
     }

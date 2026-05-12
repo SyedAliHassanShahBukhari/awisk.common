@@ -81,6 +81,40 @@ namespace awisk.common.Common
         /// Implicitly converts a string error message to a failed result.
         /// </summary>
         public static implicit operator Result<T>(string errorMessage) => Failure(errorMessage);
+
+        /// <summary>
+        /// Transforms the success value. Passes failure through unchanged.
+        /// </summary>
+        public Result<TNew> Map<TNew>(Func<T, TNew> mapper)
+        {
+            ArgumentNullException.ThrowIfNull(mapper);
+            if (IsSuccess) return Result<TNew>.Success(mapper(Value!));
+            return Exception != null
+                ? Result<TNew>.Failure(ErrorMessage!, Exception)
+                : Result<TNew>.Failure(ErrorMessage!);
+        }
+
+        /// <summary>
+        /// Chains to another Result-returning operation. Short-circuits on failure.
+        /// </summary>
+        public Result<TNew> Bind<TNew>(Func<T, Result<TNew>> binder)
+        {
+            ArgumentNullException.ThrowIfNull(binder);
+            if (IsSuccess) return binder(Value!);
+            return Exception != null
+                ? Result<TNew>.Failure(ErrorMessage!, Exception)
+                : Result<TNew>.Failure(ErrorMessage!);
+        }
+
+        /// <summary>
+        /// Collapses the result into a single value — no more if/else at call sites.
+        /// </summary>
+        public TOut Match<TOut>(Func<T, TOut> onSuccess, Func<string, TOut> onFailure)
+        {
+            ArgumentNullException.ThrowIfNull(onSuccess);
+            ArgumentNullException.ThrowIfNull(onFailure);
+            return IsSuccess ? onSuccess(Value!) : onFailure(ErrorMessage ?? string.Empty);
+        }
     }
 
     /// <summary>
