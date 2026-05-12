@@ -5,14 +5,34 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<!-- Package Identity -->
+		<PackageId>awisk.Common</PackageId>
 		<Version>3.0.0</Version>
+		<AssemblyVersion>3.0.0.0</AssemblyVersion>
+		<FileVersion>3.0.0.0</FileVersion>
+
+		<!-- Authorship -->
 		<Authors>Syed Ali Hassan</Authors>
 		<Company>awisk</Company>
-		<PackageId>awisk.Common</PackageId>
-		<Description>Common utilities for projects</Description>
-		<PackageTags>utilities;helpers;common;awisk</PackageTags>
+		<Copyright>Copyright © 2024-2026 awisk</Copyright>
+
+		<!-- Package Description -->
+		<Description>A comprehensive .NET 10 shared utility library for ASP.NET Core projects. Provides a Dapper-based generic repository pattern for SQL Server, MySQL, and PostgreSQL; a functional Result&lt;T&gt; error-handling type; pagination DTOs; JWT authentication helpers; ICurrentUserService; ICacheService with in-memory and Redis backends; IEmailService via MailKit SMTP; IFileStorageService for local disk storage; Correlation ID and request/response logging middleware; EF Core audit interceptor and soft-delete global query filter; health checks; FluentMigrator integration; EnumHelper; and a rich set of UniversalOperations extension methods.</Description>
+		<PackageTags>aspnetcore;dotnet;utilities;helpers;common;dapper;repository;result-pattern;jwt;caching;redis;email;mailkit;efcore;audit;soft-delete;pagination;middleware;correlation-id;health-checks;fluent-migrator;sqlserver;mysql;postgresql;awisk</PackageTags>
+
+		<!-- URLs -->
+		<PackageProjectUrl>https://github.com/SyedAliHassanShahBukhari/awisk.common</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/SyedAliHassanShahBukhari/awisk.common.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+
+		<!-- Release Notes -->
+		<PackageReleaseNotes>v3.0.0 — Upgraded to .NET 10. Added ICurrentUserService, ICacheService (memory + Redis), IEmailService (MailKit SMTP), IFileStorageService, CorrelationIdMiddleware, RequestResponseLoggingMiddleware, EF Core AuditInterceptor, soft-delete global query filter, health check extensions, CancellationToken propagation across all async repository methods, and Result&lt;T&gt; Map/Bind/Match operators. See full changelog: https://github.com/SyedAliHassanShahBukhari/awisk.common/blob/master/CHANGELOG.md</PackageReleaseNotes>
+
+		<!-- Documentation -->
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
 	<ItemGroup>
