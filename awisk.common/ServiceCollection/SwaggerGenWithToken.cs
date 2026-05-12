@@ -1,6 +1,6 @@
 ﻿using awisk.common.Classes;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using System.Reflection;
 
 namespace awisk.common.ServiceCollection
@@ -44,18 +44,11 @@ namespace awisk.common.ServiceCollection
                     Description = "Enter your JWT token with 'Bearer ' prefix. Example: Bearer 12345abcdef"
                 });
 
-                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                option.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
                 {
                     {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
+                        new OpenApiSecuritySchemeReference("Bearer"),
+                        []
                     }
                 });
             });
