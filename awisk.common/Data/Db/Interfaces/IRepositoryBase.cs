@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 
 namespace awisk.common.Data.Db.Interfaces
 {
@@ -27,38 +27,38 @@ namespace awisk.common.Data.Db.Interfaces
         T QuerySingleOrDefault<T>(string sql, object? parameters, CommandType commandType);
 
         // Async CRUD Operations
-        Task<IEnumerable<T>> GetAllAsync<T>() where T : class;
-        Task<T?> GetByIdAsync<T, ID>(ID id) where T : class;
-        Task<T> InsertAsync<T>(T item) where T : class;
-        Task InsertAsync<T>(IEnumerable<T> items) where T : class;
-        Task<bool> UpdateAsync<T>(T item) where T : class;
-        Task<bool> DeleteAsync<T, ID>(ID id) where T : class;
-        Task<bool> DeleteAsync<T>(T item) where T : class;
+        Task<IEnumerable<T>> GetAllAsync<T>(CancellationToken ct = default) where T : class;
+        Task<T?> GetByIdAsync<T, ID>(ID id, CancellationToken ct = default) where T : class;
+        Task<T> InsertAsync<T>(T item, CancellationToken ct = default) where T : class;
+        Task InsertAsync<T>(IEnumerable<T> items, CancellationToken ct = default) where T : class;
+        Task<bool> UpdateAsync<T>(T item, CancellationToken ct = default) where T : class;
+        Task<bool> DeleteAsync<T, ID>(ID id, CancellationToken ct = default) where T : class;
+        Task<bool> DeleteAsync<T>(T item, CancellationToken ct = default) where T : class;
 
         // Async Query Operations
-        Task<int> ExecuteAsync(string sql, object? parameters, CommandType commandType);
-        Task<IReadOnlyList<dynamic>> QueryAsync(string sql, object? parameters, CommandType commandType);
-        Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? parameters, CommandType commandType);
-        Task<dynamic> QueryFirstAsync(string sql, object? parameters, CommandType commandType);
-        Task<T> QueryFirstAsync<T>(string sql, object? parameters, CommandType commandType);
-        Task<dynamic> QueryFirstOrDefaultAsync(string sql, object? parameters, CommandType commandType);
-        Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType);
-        Task<dynamic> QuerySingleAsync(string sql, object? parameters, CommandType commandType);
-        Task<T> QuerySingleAsync<T>(string sql, object? parameters, CommandType commandType);
-        Task<dynamic> QuerySingleOrDefaultAsync(string sql, object? parameters, CommandType commandType);
-        Task<T> QuerySingleOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType);
-        Task<int> DeleteByIdAsync(string sql, object? parameters, CommandType commandType);
+        Task<int> ExecuteAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<IReadOnlyList<dynamic>> QueryAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<dynamic> QueryFirstAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<T> QueryFirstAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<dynamic> QueryFirstOrDefaultAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<dynamic> QuerySingleAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<T> QuerySingleAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<dynamic> QuerySingleOrDefaultAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<T> QuerySingleOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
+        Task<int> DeleteByIdAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default);
 
         // Count and Exists Operations
         int Count<T>() where T : class;
-        Task<int> CountAsync<T>() where T : class;
+        Task<int> CountAsync<T>(CancellationToken ct = default) where T : class;
         int Count<T>(string sql, object? parameters, CommandType commandType) where T : class;
-        Task<int> CountAsync<T>(string sql, object? parameters, CommandType commandType) where T : class;
+        Task<int> CountAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default) where T : class;
         bool Exists<T, ID>(ID id) where T : class;
-        Task<bool> ExistsAsync<T, ID>(ID id) where T : class;
+        Task<bool> ExistsAsync<T, ID>(ID id, CancellationToken ct = default) where T : class;
 
         // Transaction Support
-        Task<T> ExecuteInTransactionAsync<T>(Func<IDbConnection, IDbTransaction, Task<T>> work);
-        Task ExecuteInTransactionAsync(Func<IDbConnection, IDbTransaction, Task> work);
+        Task<T> ExecuteInTransactionAsync<T>(Func<IDbConnection, IDbTransaction, Task<T>> work, CancellationToken ct = default);
+        Task ExecuteInTransactionAsync(Func<IDbConnection, IDbTransaction, Task> work, CancellationToken ct = default);
     }
 }

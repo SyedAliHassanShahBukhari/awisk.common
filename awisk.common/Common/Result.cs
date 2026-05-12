@@ -131,7 +131,7 @@ namespace awisk.common.Common
         /// Creates a successful result for a void operation.
         /// </summary>
         /// <returns>A successful result.</returns>
-        public static new Result Success() => new(true, null, null, null);
+        public static Result Success() => new(true, null, null, null);
 
         /// <summary>
         /// Creates a failed result with an error message.

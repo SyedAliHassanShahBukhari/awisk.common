@@ -1,4 +1,4 @@
-﻿using awisk.common.Data.Db.Interfaces;
+using awisk.common.Data.Db.Interfaces;
 using Dapper;
 using Dapper.Contrib.Extensions;
 using MySql.Data.MySqlClient;
@@ -17,9 +17,6 @@ namespace awisk.common.Data.Db
             return connection.GetAll<T>();
         }
 
-        /// <summary>
-        /// Gets an entity by its ID. Returns null if not found.
-        /// </summary>
         public T? GetById<T, ID>(ID id) where T : class
         {
             using MySqlConnection connection = new(ConnectionString);
@@ -68,16 +65,14 @@ namespace awisk.common.Data.Db
 
         public int Execute(string commandText, object? parameters, CommandType commandType)
         {
-            CommandType? commandType2 = commandType;
-            CommandDefinition command = new(commandText, parameters, null, null, commandType2);
+            var command = new CommandDefinition(commandText, parameters, commandType: commandType);
             using MySqlConnection cnn = new(ConnectionString);
             return cnn.Execute(command);
         }
 
         protected static int Execute(string connectionString, string commandText, object? parameters, CommandType commandType)
         {
-            CommandType? commandType2 = commandType;
-            CommandDefinition command = new(commandText, parameters, null, null, commandType2);
+            var command = new CommandDefinition(commandText, parameters, commandType: commandType);
             using MySqlConnection cnn = new(connectionString);
             return cnn.Execute(command);
         }
@@ -90,10 +85,9 @@ namespace awisk.common.Data.Db
 
         public IReadOnlyList<T> Query<T>(string sql, object? parameters, CommandType commandType)
         {
-            CommandDefinition commandDefinition = new(sql, parameters, commandType: commandType);
-
+            var command = new CommandDefinition(sql, parameters, commandType: commandType);
             using MySqlConnection sqlConnection = new(ConnectionString);
-            return sqlConnection.Query<T>(commandDefinition).AsList();
+            return sqlConnection.Query<T>(command).AsList();
         }
 
         public dynamic QueryFirst(string sql, object? parameters, CommandType commandType)
@@ -104,10 +98,9 @@ namespace awisk.common.Data.Db
 
         public T QueryFirst<T>(string commandText, object? parameters, CommandType commandType)
         {
-            CommandDefinition commandDefinition = new(commandText, parameters, commandType: commandType);
-
+            var command = new CommandDefinition(commandText, parameters, commandType: commandType);
             using MySqlConnection sqlConnection = new(ConnectionString);
-            return sqlConnection.QueryFirst<T>(commandDefinition);
+            return sqlConnection.QueryFirst<T>(command);
         }
 
         public dynamic QueryFirstOrDefault(string sql, object? parameters, CommandType commandType)
@@ -118,16 +111,9 @@ namespace awisk.common.Data.Db
 
         public T QueryFirstOrDefault<T>(string commandText, object? parameters, CommandType commandType)
         {
-            CommandDefinition commandDefinition = new(commandText, parameters, commandType: commandType);
-
+            var command = new CommandDefinition(commandText, parameters, commandType: commandType);
             using MySqlConnection sqlConnection = new(ConnectionString);
-            return sqlConnection.QueryFirstOrDefault<T>(commandDefinition);
-        }
-
-        public async Task<int> DeleteByIdAsync(string sql, object? parameters, CommandType commandType)
-        {
-            using MySqlConnection sqlConnection = new(ConnectionString);
-            return await sqlConnection.ExecuteAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+            return sqlConnection.QueryFirstOrDefault<T>(command);
         }
 
         public dynamic QuerySingle(string sql, object? parameters, CommandType commandType)
@@ -138,10 +124,9 @@ namespace awisk.common.Data.Db
 
         public T QuerySingle<T>(string commandText, object? parameters, CommandType commandType)
         {
-            CommandDefinition commandDefinition = new(commandText, parameters, commandType: commandType);
-
+            var command = new CommandDefinition(commandText, parameters, commandType: commandType);
             using MySqlConnection sqlConnection = new(ConnectionString);
-            return sqlConnection.QuerySingle<T>(commandDefinition);
+            return sqlConnection.QuerySingle<T>(command);
         }
 
         public dynamic QuerySingleOrDefault(string sql, object? parameters, CommandType commandType)
@@ -152,10 +137,9 @@ namespace awisk.common.Data.Db
 
         public T QuerySingleOrDefault<T>(string commandText, object? parameters, CommandType commandType)
         {
-            CommandDefinition commandDefinition = new(commandText, parameters, commandType: commandType);
-
+            var command = new CommandDefinition(commandText, parameters, commandType: commandType);
             using MySqlConnection sqlConnection = new(ConnectionString);
-            return sqlConnection.QuerySingleOrDefault<T>(commandDefinition);
+            return sqlConnection.QuerySingleOrDefault<T>(command);
         }
 
         public static string GetPagingStatement(int? page, int? pageSize)
@@ -171,13 +155,6 @@ namespace awisk.common.Data.Db
 
         private const int DefaultBatchSize = 2000;
 
-        /// <summary>
-        /// Splits a collection into batches of a specified size for batch processing.
-        /// </summary>
-        /// <typeparam name="T">The type of items in the collection</typeparam>
-        /// <param name="items">The collection to batch</param>
-        /// <param name="batchSize">The size of each batch (default: 2000)</param>
-        /// <returns>An enumerable of batches</returns>
         public static IEnumerable<IEnumerable<T>> CreateBatches<T>(IEnumerable<T> items, int batchSize = DefaultBatchSize)
         {
             ArgumentNullException.ThrowIfNull(items);
@@ -191,19 +168,19 @@ namespace awisk.common.Data.Db
         // Async CRUD Operations
         // ───────────────────────────────────────────────
 
-        public async Task<IEnumerable<T>> GetAllAsync<T>() where T : class
+        public async Task<IEnumerable<T>> GetAllAsync<T>(CancellationToken ct = default) where T : class
         {
             using MySqlConnection connection = new(ConnectionString);
             return await connection.GetAllAsync<T>().ConfigureAwait(false);
         }
 
-        public async Task<T?> GetByIdAsync<T, ID>(ID id) where T : class
+        public async Task<T?> GetByIdAsync<T, ID>(ID id, CancellationToken ct = default) where T : class
         {
             using MySqlConnection connection = new(ConnectionString);
             return await connection.GetAsync<T>(id).ConfigureAwait(false);
         }
 
-        public async Task<T> InsertAsync<T>(T item) where T : class
+        public async Task<T> InsertAsync<T>(T item, CancellationToken ct = default) where T : class
         {
             ArgumentNullException.ThrowIfNull(item);
 
@@ -212,7 +189,7 @@ namespace awisk.common.Data.Db
             return item;
         }
 
-        public async Task InsertAsync<T>(IEnumerable<T> items) where T : class
+        public async Task InsertAsync<T>(IEnumerable<T> items, CancellationToken ct = default) where T : class
         {
             ArgumentNullException.ThrowIfNull(items);
 
@@ -220,7 +197,7 @@ namespace awisk.common.Data.Db
             await connection.InsertAsync(items).ConfigureAwait(false);
         }
 
-        public async Task<bool> UpdateAsync<T>(T item) where T : class
+        public async Task<bool> UpdateAsync<T>(T item, CancellationToken ct = default) where T : class
         {
             ArgumentNullException.ThrowIfNull(item);
 
@@ -228,14 +205,15 @@ namespace awisk.common.Data.Db
             return await connection.UpdateAsync(item).ConfigureAwait(false);
         }
 
-        public async Task<bool> DeleteAsync<T, ID>(ID id) where T : class
+        public async Task<bool> DeleteAsync<T, ID>(ID id, CancellationToken ct = default) where T : class
         {
             var tableName = GetTableName<T>();
+            var command = new CommandDefinition($"DELETE FROM `{tableName}` WHERE Id = @Id", new { Id = id }, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            return await connection.ExecuteAsync($"DELETE FROM `{tableName}` WHERE Id = @Id", new { Id = id }).ConfigureAwait(false) > 0;
+            return await connection.ExecuteAsync(command).ConfigureAwait(false) > 0;
         }
 
-        public async Task<bool> DeleteAsync<T>(T item) where T : class
+        public async Task<bool> DeleteAsync<T>(T item, CancellationToken ct = default) where T : class
         {
             ArgumentNullException.ThrowIfNull(item);
 
@@ -247,78 +225,90 @@ namespace awisk.common.Data.Db
         // Async Query Operations
         // ───────────────────────────────────────────────
 
-        public async Task<int> ExecuteAsync(string sql, object? parameters, CommandType commandType)
+        public async Task<int> ExecuteAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
-            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
             return await connection.ExecuteAsync(command).ConfigureAwait(false);
         }
 
-        public async Task<IReadOnlyList<dynamic>> QueryAsync(string sql, object? parameters, CommandType commandType)
+        public async Task<IReadOnlyList<dynamic>> QueryAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            var result = await connection.QueryAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+            var result = await connection.QueryAsync(command).ConfigureAwait(false);
             return result.AsList();
         }
 
-        public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? parameters, CommandType commandType)
+        public async Task<IReadOnlyList<T>> QueryAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
-            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
             var result = await connection.QueryAsync<T>(command).ConfigureAwait(false);
             return result.AsList();
         }
 
-        public async Task<dynamic> QueryFirstAsync(string sql, object? parameters, CommandType commandType)
+        public async Task<dynamic> QueryFirstAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            return await connection.QueryFirstAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+            return await connection.QueryFirstAsync(command).ConfigureAwait(false);
         }
 
-        public async Task<T> QueryFirstAsync<T>(string sql, object? parameters, CommandType commandType)
+        public async Task<T> QueryFirstAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
-            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
             return await connection.QueryFirstAsync<T>(command).ConfigureAwait(false);
         }
 
-        public async Task<dynamic> QueryFirstOrDefaultAsync(string sql, object? parameters, CommandType commandType)
+        public async Task<dynamic> QueryFirstOrDefaultAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            return await connection.QueryFirstOrDefaultAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+            return await connection.QueryFirstOrDefaultAsync(command).ConfigureAwait(false);
         }
 
-        public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType)
+        public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
-            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
             return await connection.QueryFirstOrDefaultAsync<T>(command).ConfigureAwait(false);
         }
 
-        public async Task<dynamic> QuerySingleAsync(string sql, object? parameters, CommandType commandType)
+        public async Task<dynamic> QuerySingleAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            return await connection.QuerySingleAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+            return await connection.QuerySingleAsync(command).ConfigureAwait(false);
         }
 
-        public async Task<T> QuerySingleAsync<T>(string sql, object? parameters, CommandType commandType)
+        public async Task<T> QuerySingleAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
-            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
             return await connection.QuerySingleAsync<T>(command).ConfigureAwait(false);
         }
 
-        public async Task<dynamic> QuerySingleOrDefaultAsync(string sql, object? parameters, CommandType commandType)
+        public async Task<dynamic> QuerySingleOrDefaultAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            return await connection.QuerySingleOrDefaultAsync(sql, parameters, commandType: commandType).ConfigureAwait(false);
+            return await connection.QuerySingleOrDefaultAsync(command).ConfigureAwait(false);
         }
 
-        public async Task<T> QuerySingleOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType)
+        public async Task<T> QuerySingleOrDefaultAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
         {
-            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
             return await connection.QuerySingleOrDefaultAsync<T>(command).ConfigureAwait(false);
+        }
+
+        public async Task<int> DeleteByIdAsync(string sql, object? parameters, CommandType commandType, CancellationToken ct = default)
+        {
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
+            using MySqlConnection sqlConnection = new(ConnectionString);
+            return await sqlConnection.ExecuteAsync(command).ConfigureAwait(false);
         }
 
         // ───────────────────────────────────────────────
@@ -328,17 +318,16 @@ namespace awisk.common.Data.Db
         public int Count<T>() where T : class
         {
             var tableName = typeof(T).Name;
-            var sql = $"SELECT COUNT(*) FROM `{tableName}`";
             using MySqlConnection connection = new(ConnectionString);
-            return connection.QuerySingle<int>(sql);
+            return connection.QuerySingle<int>($"SELECT COUNT(*) FROM `{tableName}`");
         }
 
-        public async Task<int> CountAsync<T>() where T : class
+        public async Task<int> CountAsync<T>(CancellationToken ct = default) where T : class
         {
             var tableName = typeof(T).Name;
-            var sql = $"SELECT COUNT(*) FROM `{tableName}`";
+            var command = new CommandDefinition($"SELECT COUNT(*) FROM `{tableName}`", cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            return await connection.QuerySingleAsync<int>(sql).ConfigureAwait(false);
+            return await connection.QuerySingleAsync<int>(command).ConfigureAwait(false);
         }
 
         public int Count<T>(string sql, object? parameters, CommandType commandType) where T : class
@@ -348,9 +337,9 @@ namespace awisk.common.Data.Db
             return connection.QuerySingle<int>(command);
         }
 
-        public async Task<int> CountAsync<T>(string sql, object? parameters, CommandType commandType) where T : class
+        public async Task<int> CountAsync<T>(string sql, object? parameters, CommandType commandType, CancellationToken ct = default) where T : class
         {
-            var command = new CommandDefinition(sql, parameters, commandType: commandType);
+            var command = new CommandDefinition(sql, parameters, commandType: commandType, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
             return await connection.QuerySingleAsync<int>(command).ConfigureAwait(false);
         }
@@ -366,22 +355,23 @@ namespace awisk.common.Data.Db
             return connection.QuerySingle<int>($"SELECT COUNT(1) FROM `{tableName}` WHERE Id = @Id", new { Id = id }) > 0;
         }
 
-        public async Task<bool> ExistsAsync<T, ID>(ID id) where T : class
+        public async Task<bool> ExistsAsync<T, ID>(ID id, CancellationToken ct = default) where T : class
         {
             var tableName = GetTableName<T>();
+            var command = new CommandDefinition($"SELECT COUNT(1) FROM `{tableName}` WHERE Id = @Id", new { Id = id }, cancellationToken: ct);
             using MySqlConnection connection = new(ConnectionString);
-            return await connection.QuerySingleAsync<int>($"SELECT COUNT(1) FROM `{tableName}` WHERE Id = @Id", new { Id = id }).ConfigureAwait(false) > 0;
+            return await connection.QuerySingleAsync<int>(command).ConfigureAwait(false) > 0;
         }
 
         // ───────────────────────────────────────────────
         // Transaction Support
         // ───────────────────────────────────────────────
 
-        public async Task<T> ExecuteInTransactionAsync<T>(Func<IDbConnection, IDbTransaction, Task<T>> work)
+        public async Task<T> ExecuteInTransactionAsync<T>(Func<IDbConnection, IDbTransaction, Task<T>> work, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(work);
             using MySqlConnection connection = new(ConnectionString);
-            await connection.OpenAsync().ConfigureAwait(false);
+            await connection.OpenAsync(ct).ConfigureAwait(false);
             using var transaction = connection.BeginTransaction();
             try
             {
@@ -396,11 +386,11 @@ namespace awisk.common.Data.Db
             }
         }
 
-        public async Task ExecuteInTransactionAsync(Func<IDbConnection, IDbTransaction, Task> work)
+        public async Task ExecuteInTransactionAsync(Func<IDbConnection, IDbTransaction, Task> work, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(work);
             using MySqlConnection connection = new(ConnectionString);
-            await connection.OpenAsync().ConfigureAwait(false);
+            await connection.OpenAsync(ct).ConfigureAwait(false);
             using var transaction = connection.BeginTransaction();
             try
             {
