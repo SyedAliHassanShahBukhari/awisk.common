@@ -1,5 +1,5 @@
 ﻿using FluentMigrator.Runner;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace awisk.common.Migrators
