@@ -144,16 +144,13 @@ namespace awisk.common.Data.Db
 
         public static string GetPagingStatement(int? page, int? pageSize)
         {
-            int size = pageSize ?? 100;
-            if (page.HasValue && page.Value > 0)
-            {
-                int offset = (page.Value - 1) * size;
-                return $" LIMIT {size} OFFSET {offset}";
-            }
-            return $" LIMIT {size}";
+            int size = pageSize ?? DefaultPageSize;
+            int offset = page.HasValue && page.Value > 0 ? (page.Value - 1) * size : 0;
+            return $" LIMIT {size} OFFSET {offset}";
         }
 
         private const int DefaultBatchSize = 2000;
+        private const int DefaultPageSize = 100;
 
         public static IEnumerable<IEnumerable<T>> CreateBatches<T>(IEnumerable<T> items, int batchSize = DefaultBatchSize)
         {
@@ -317,14 +314,14 @@ namespace awisk.common.Data.Db
 
         public int Count<T>() where T : class
         {
-            var tableName = typeof(T).Name;
+            var tableName = GetTableName<T>();
             using var connection = new NpgsqlConnection(ConnectionString);
             return connection.QuerySingle<int>($"SELECT COUNT(*) FROM \"{tableName}\"");
         }
 
         public async Task<int> CountAsync<T>(CancellationToken ct = default) where T : class
         {
-            var tableName = typeof(T).Name;
+            var tableName = GetTableName<T>();
             var command = new CommandDefinition($"SELECT COUNT(*) FROM \"{tableName}\"", cancellationToken: ct);
             using var connection = new NpgsqlConnection(ConnectionString);
             return await connection.QuerySingleAsync<int>(command).ConfigureAwait(false);
