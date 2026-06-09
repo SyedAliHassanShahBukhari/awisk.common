@@ -48,28 +48,37 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
 	  <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
 	  <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
-	  <PackageReference Include="MailKit" Version="4.16.0" />
-	  <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.7" />
-	  <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
-	  <PackageReference Include="StackExchange.Redis" Version="2.12.14" />
+	  <PackageReference Include="MailKit" Version="4.17.0" />
+	  <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.8" />
+	  <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.8" />
+	  <PackageReference Include="StackExchange.Redis" Version="2.13.17" />
 	  <PackageReference Include="FluentMigrator" Version="8.0.1" />
-	  <PackageReference Include="FluentMigrator.Runner" Version="8.0.1" />
-	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
-	  <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.7" />
-	  <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.7" />
+	  <!-- Reference only the runners actually used (SqlServer/MySql/Postgres) instead of the
+	       aggregate FluentMigrator.Runner, which drags in DB2/Oracle/Firebird/etc. The DB2
+	       runner pulls Net.IBM.Data.Db2 (x64-only), causing MSB3270 architecture-mismatch
+	       warnings against this AnyCPU library. -->
+	  <PackageReference Include="FluentMigrator.Runner.SqlServer" Version="8.0.1" />
+	  <PackageReference Include="FluentMigrator.Runner.MySql" Version="8.0.1" />
+	  <PackageReference Include="FluentMigrator.Runner.Postgres" Version="8.0.1" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+	  <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.8" />
+	  <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
 	  <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.7" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.7" />
-	  <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
-	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+	  <!-- NoWarn NU1608: Pomelo.EntityFrameworkCore.MySql 9.0.0 caps Relational at <= 9.0.999,
+	       but the project runs EF Core 10. Pomelo 9.0.0 works against EF Core 10 at runtime and
+	       has no .NET 10 release yet. Remove once a .NET 10-compatible Pomelo ships. -->
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.8" NoWarn="NU1608" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+	  <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
 	  <PackageReference Include="MySql.Data" Version="9.7.0" />
-	  <PackageReference Include="Npgsql" Version="10.0.2" />
-	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+	  <PackageReference Include="Npgsql" Version="10.0.3" />
+	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
 	  <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
-	  <PackageReference Include="Microsoft.OpenApi" Version="3.5.3" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
-	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
+	  <PackageReference Include="Microsoft.OpenApi" Version="3.6.0" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
 	</ItemGroup>
 
 </Project>
