@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ---
 
+## [3.1.0] — 2026-10-02
+
+### Breaking Changes
+
+- **`UpdatedBy` and `DeletedBy` are now `string?` with no initialiser** on `BaseEntity<T>`, `BaseGuidEntity`, `BaseIntEntity` and `BaseLongEntity`. They previously defaulted to `string.Empty`, which stamped a placeholder into both columns on *every* insert — the columns have always been nullable in the schema, and NULL is what "never updated / never deleted" is supposed to look like. Consuming code that reads either property without a null check will warn or fail under nullable reference types.
+- **`WithDefaultColumns()` now declares `UpdatedOn` and `DeletedOn` as nullable with no default.** They were `NOT NULL` with a `1900-01-01` sentinel, contradicting the `DateTime?` the entity base classes have declared since 3.0.0 — a NOT NULL column rejects the explicit NULL Dapper.Contrib sends on insert, so every new table created with this helper broke on its first insert until the migration patched the columns by hand. Existing tables are unaffected; only newly created ones change shape.
+
+### Changed
+
+- `CreatedBy` now defaults to `"System"` instead of `string.Empty`, matching the column default `WithDefaultColumns()` has always written. An insert that does not set `CreatedBy` now records `System` rather than an empty string.
+
+### Upgrade notes
+
+- Audit columns created by earlier versions may hold two placeholder shapes: `'00000000-0000-0000-0000-000000000000'` (pre-3.x) and `''` (3.0.x). Clean **both**, and clean `1900-01-01` out of `UpdatedOn`/`DeletedOn`, in a migration run *after* this package is deployed — otherwise the application writes the placeholders straight back.
+- Set `UpdatedBy` explicitly on every update path. Leaving it NULL after an edit is now indistinguishable from "never edited".
+
 ## [3.0.0] — 2026-05-12
 
 ### Breaking Changes

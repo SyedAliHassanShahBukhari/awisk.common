@@ -8,9 +8,9 @@
 
 		<!-- Package Identity -->
 		<PackageId>awisk.Common</PackageId>
-		<Version>3.0.1</Version>
-		<AssemblyVersion>3.0.1.0</AssemblyVersion>
-		<FileVersion>3.0.1.0</FileVersion>
+		<Version>3.1.0</Version>
+		<AssemblyVersion>3.1.0.0</AssemblyVersion>
+		<FileVersion>3.1.0.0</FileVersion>
 
 		<!-- Authorship -->
 		<Authors>Syed Ali Hassan</Authors>
@@ -27,7 +27,7 @@
 		<RepositoryType>git</RepositoryType>
 
 		<!-- Release Notes -->
-		<PackageReleaseNotes>v3.0.0 — Upgraded to .NET 10. Added ICurrentUserService, ICacheService (memory + Redis), IEmailService (MailKit SMTP), IFileStorageService, CorrelationIdMiddleware, RequestResponseLoggingMiddleware, EF Core AuditInterceptor, soft-delete global query filter, health check extensions, CancellationToken propagation across all async repository methods, and Result&lt;T&gt; Map/Bind/Match operators. See full changelog: https://github.com/SyedAliHassanShahBukhari/awisk.common/blob/master/CHANGELOG.md</PackageReleaseNotes>
+		<PackageReleaseNotes>v3.1.0 — Audit columns tell the truth. UpdatedBy and DeletedBy are now nullable (string?) with no initialiser, so they stay NULL until a row is genuinely updated or soft-deleted instead of being stamped with a placeholder on every insert. WithDefaultColumns() now declares UpdatedOn/DeletedOn as nullable with no 1900-01-01 sentinel default, matching the entity base classes. CreatedBy defaults to "System", matching the column default. SOURCE-BREAKING: code that reads UpdatedBy/DeletedBy without a null check will warn or fail under nullable reference types. v3.0.0 — Upgraded to .NET 10. Added ICurrentUserService, ICacheService (memory + Redis), IEmailService (MailKit SMTP), IFileStorageService, CorrelationIdMiddleware, RequestResponseLoggingMiddleware, EF Core AuditInterceptor, soft-delete global query filter, health check extensions, CancellationToken propagation across all async repository methods, and Result&lt;T&gt; Map/Bind/Match operators. See full changelog: https://github.com/SyedAliHassanShahBukhari/awisk.common/blob/master/CHANGELOG.md</PackageReleaseNotes>
 
 		<!-- Documentation -->
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
